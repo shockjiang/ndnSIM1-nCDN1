@@ -46,7 +46,7 @@ using namespace ns3;
  * 1024 bytes of virtual payload.
  *
  * To run scenario and see what is happening, use the following command:
- *
+ * try it:
  *     NS_LOG=ndn.Consumer:ndn.ConsumerZipfMandelbrot:ndn.Producer ./waf --run=ndn-zipf-mandelbrot
  */
 
