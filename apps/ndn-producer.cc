@@ -111,8 +111,11 @@ Producer::OnInterest (const Ptr<const InterestHeader> &interest, Ptr<Packet> ori
 {
   App::OnInterest (interest, origPacket); // tracing inside
 
-  NS_LOG_FUNCTION (this << interest);
+  NS_LOG_FUNCTION (this << interest->GetNamePtr()->str());
 
+//  if (interest->GetNamePtr()->str().substr(0, this->m_prefix.str().size())!=this->m_prefix.str()){
+//	  NS_LOG_ERROR(" app can not meet the interest: "<<interest->GetNamePtr()->str()<<" prefix="<<this->m_prefix.str()<<" node="<<this->GetNode()->GetId());
+//  }
   if (!m_active) return;
     
   static ContentObjectTail tail;
@@ -120,7 +123,7 @@ Producer::OnInterest (const Ptr<const InterestHeader> &interest, Ptr<Packet> ori
   header->SetName (Create<NameComponents> (interest->GetName ()));
   header->SetFreshness (m_freshness);
 
-  NS_LOG_INFO ("node("<< GetNode()->GetId() <<") respodning with ContentObject:\n" << boost::cref(*header));
+  NS_LOG_INFO ("<Respodning with ContentObject:"<< boost::cref(*header)<<" node: "<<GetNode()->GetId());
   
   Ptr<Packet> packet = Create<Packet> (m_virtualPayloadSize);
   // Ptr<const WeightsPathStretchTag> tag = origPacket->RemovePacketTag<WeightsPathStretchTag> ();

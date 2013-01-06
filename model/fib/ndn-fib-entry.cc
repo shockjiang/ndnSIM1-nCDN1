@@ -23,6 +23,7 @@
 #include "ns3/ndn-name-components.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
+#include "ns3/node.h"
 
 #define NDN_RTO_ALPHA 0.125
 #define NDN_RTO_BETA 0.25
@@ -90,12 +91,21 @@ Entry::UpdateFaceRtt (Ptr<Face> face, const Time &sample)
 void
 Entry::UpdateStatus (Ptr<Face> face, FaceMetric::Status status)
 {
-  NS_LOG_FUNCTION (this << boost::cref(*face) << status);
+
+
+  //NS_LOG_FUNCTION (this->GetPrefix() <<boost::cref(*face) << "status="<<status<<" on node "<<face->GetNode()->GetId()<<" with face "<<face->GetId());
 
   FaceMetricByFace::type::iterator record = m_faces.get<i_face> ().find (face);
   NS_ASSERT_MSG (record != m_faces.get<i_face> ().end (),
                  "Update status can be performed only on existing faces of CcxnFibEntry");
 
+  ns3::ndn::fib::FaceMetric::Status s = record->m_status;//(&ll::_1)->*&FaceMetric::m_status;
+  if (s != status) {
+	  NS_LOG_DEBUG ("change status from "<<s<<" to "<<status<<" on node "<<face->GetNode()->GetId()<<" with face "<<face->GetId()<<" prefix "<<this->GetPrefix());
+	  //NS_LOG_INFO("update status on node "<<face->GetNode()->GetId()<<" from "<<s<<" to "<<status);
+  } else{
+	  NS_LOG_DEBUG("keep same status "<<status<<" on node "<<face->GetNode()->GetId()<<" prefix "<<this->GetPrefix());
+  }
   m_faces.modify (record,
                   (&ll::_1)->*&FaceMetric::m_status = status);
 

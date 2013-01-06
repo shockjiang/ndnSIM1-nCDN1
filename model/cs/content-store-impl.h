@@ -30,9 +30,10 @@
 #include "ns3/log.h"
 #include "ns3/uinteger.h"
 #include "ns3/string.h"
-
+#include <boost/lexical_cast.hpp>
 #include "../../utils/trie/trie-with-policy.h"
 
+using namespace std;
 namespace ns3 {
 namespace ndn {
 namespace cs {
@@ -77,7 +78,7 @@ public:
                                     Policy > super;
   
   typedef EntryImpl< ContentStoreImpl< Policy > > entry;
-  
+
   static TypeId
   GetTypeId ();
   
@@ -119,6 +120,7 @@ private:
 
 private:
   static LogComponent g_log; ///< @brief Logging variable
+
 };
 
 //////////////////////////////////////////
@@ -180,7 +182,13 @@ bool
 ContentStoreImpl<Policy>::Add (Ptr<const ContentObjectHeader> header, Ptr<const Packet> packet)
 {
   NS_LOG_FUNCTION (this << header->GetName ());
+  //shock begin
+  if (this->getPolicy ().get_max_size () == std::numeric_limits<uint32_t>::max ()){
+	  NS_LOG_DEBUG("CS maxsize = 0: name: "<<header->GetName());
+	  return true;
+  }
 
+  //shock end
   Ptr< entry > newEntry = Create< entry > (header, packet);
   std::pair< typename super::iterator, bool > result = super::insert (header->GetName (), newEntry);
 

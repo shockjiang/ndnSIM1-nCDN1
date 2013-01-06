@@ -154,14 +154,14 @@ ConsumerZipfMandelbrot::SendPacket() {
   interestHeader.SetName  (nameWithSequence);
 
   // NS_LOG_INFO ("Requesting Interest: \n" << interestHeader);
-  NS_LOG_INFO ("> Interest for " << seq<<", Total: "<<m_seq<<", face: "<<m_face->GetId());
+  //NS_LOG_INFO (">Interest for " << seq<<", Total: "<<m_seq<<", face: "<<m_face->GetId());
 
   Ptr<Packet> packet = Create<Packet> ();
 
   //NS_LOG_DEBUG ("= Interest for " << seq<<", Total: "<<m_seq<<", face: "<<m_face->GetId());
   packet->AddHeader (interestHeader);
   //NS_LOG_DEBUG ("Interest packet size: " << packet->GetSize ());
-
+  NS_LOG_INFO (">Interest for " << interestHeader.GetName()<<", node: "<<GetNode()->GetId());
   NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");
 
   m_seqTimeouts.insert (SeqTimeout (seq, Simulator::Now ()));

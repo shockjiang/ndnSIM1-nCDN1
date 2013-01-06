@@ -215,13 +215,13 @@ Consumer::SendPacket ()
   interestHeader.SetName                (nameWithSequence);
         
   // NS_LOG_INFO ("Requesting Interest: \n" << interestHeader);
-  NS_LOG_INFO ("> Interest for " << seq);
+  NS_LOG_INFO (">Interest for " << interestHeader.GetName()<<", node: "<<GetNode()->GetId());
 
   Ptr<Packet> packet = Create<Packet> ();
   packet->AddHeader (interestHeader);
-  NS_LOG_DEBUG ("Interest packet size: " << packet->GetSize ());
+  //NS_LOG_DEBUG ("Interest packet size: " << packet->GetSize ());
 
-  NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");  
+  //NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");
   
   m_seqTimeouts.insert (SeqTimeout (seq, Simulator::Now ()));
   m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now () + m_interestLifeTime)); // only one insert will work. if entry exists, nothing will happen... nothing should happen
@@ -252,7 +252,7 @@ Consumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
   // NS_LOG_INFO ("Received content object: " << boost::cref(*contentObject));
   
   uint32_t seq = boost::lexical_cast<uint32_t> (contentObject->GetName ().GetComponents ().back ());
-  NS_LOG_INFO ("< DATA for " << seq);
+  NS_LOG_INFO ("=DATA for "<< Consumer::m_interestName<<"/" << seq<<" arrived. node: "<<GetNode()->GetId());
 
   // SeqTimeoutsContainer::iterator entry = m_seqTimeouts.find (seq);
 

@@ -102,7 +102,8 @@ private:
 public:
   Ptr<Face> m_face; ///< Face
   
-  Status m_status;		///< \brief Status of the next hop: 
+
+  Status m_status;		///< \brief Status of the next hop:
 				///<		- NDN_FIB_GREEN
 				///<		- NDN_FIB_YELLOW
 				///<		- NDN_FIB_RED

@@ -25,8 +25,9 @@
 #include "ns3/object.h"
 #include "ns3/ptr.h"
 #include "ns3/traced-callback.h"
-
+#include <boost/lexical_cast.hpp>
 #include <boost/tuple/tuple.hpp>
+using namespace std;
 
 namespace ns3 {
 
@@ -197,6 +198,10 @@ public:
   static inline Ptr<ContentStore>
   GetContentStore (Ptr<Object> node);
   
+//public:
+//  static uint32_t ZERO_UINT = std::numeric_limits<uint32_t>::max ();
+//  static std::string ZERO = boost::lexical_cast<string>(ZERO_UINT);
+
 protected:
   TracedCallback<Ptr<const InterestHeader>,
                  Ptr<const ContentObjectHeader> > m_cacheHitsTrace; ///< @brief trace of cache hits
@@ -216,6 +221,7 @@ ContentStore::GetContentStore (Ptr<Object> node)
 {
   return node->GetObject<ContentStore> ();
 }
+
 
 
 } // namespace ndn

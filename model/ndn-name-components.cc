@@ -159,6 +159,20 @@ NameComponents::Deserialize (Buffer::Iterator start)
   return i.GetDistanceFrom (start);
 }
 
+std::string
+NameComponents::str() const
+{
+	  std::string p="";
+	  for (const_iterator i=m_prefix.begin(); i!=m_prefix.end(); i++)
+	    {
+	      p += "/";
+	      p += *i;
+	    }
+	  if (m_prefix.size ()==0) p = "/";
+
+	 return p;
+}
+
 void
 NameComponents::Print (std::ostream &os) const
 {

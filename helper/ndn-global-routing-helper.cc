@@ -67,7 +67,7 @@ GlobalRoutingHelper::Install (Ptr<Node> node)
   Ptr<GlobalRouter> gr = node->GetObject<GlobalRouter> ();
   if (gr != 0)
     {
-      NS_LOG_DEBUG ("GlobalRouter is already installed: " << gr);
+      NS_LOG_LOGIC ("GlobalRouter is already installed: " << gr);
       return; // already installed
     }
   
@@ -278,7 +278,8 @@ GlobalRoutingHelper::CalculateRoutes ()
 		{
                   BOOST_FOREACH (const Ptr<const NameComponents> &prefix, i->first->GetLocalPrefixes ())
                     {
-                      NS_LOG_DEBUG (" prefix " << prefix << " reachable via face " << *i->second.get<0> ()
+
+                      NS_LOG_DEBUG (" prefix " <<prefix->str()  << " reachable via face " << *i->second.get<0> ()
                                     << " with distance " << i->second.get<1> ()
                                     << " with delay " << i->second.get<2> ());
                     

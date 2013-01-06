@@ -109,6 +109,10 @@ public:
   std::string
   GetLastComponent () const;
 
+
+  std::string
+  str() const;
+
   /**
    * \brief Get subcomponents of the name, starting with first component
    * @param[in] num Number of components to return. Valid value is in range [1, GetComponents ().size ()]
