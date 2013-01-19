@@ -78,6 +78,8 @@ Consumer::GetTypeId (void)
 
     .AddTraceSource ("PathWeightsTrace", "PathWeightsTrace",
                     MakeTraceSourceAccessor (&Consumer::m_pathWeightsTrace))
+//    .AddTraceSource ("RTT", "rtt of the consumer",
+//                     MakeTraceSourceAccessor (&Consumer::m_rtt))
     ;
 
   return tid;
