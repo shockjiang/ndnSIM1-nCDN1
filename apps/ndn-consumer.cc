@@ -78,8 +78,13 @@ Consumer::GetTypeId (void)
 
     .AddTraceSource ("PathWeightsTrace", "PathWeightsTrace",
                     MakeTraceSourceAccessor (&Consumer::m_pathWeightsTrace))
-//    .AddTraceSource ("RTT", "rtt of the consumer",
-//                     MakeTraceSourceAccessor (&Consumer::m_rtt))
+
+    .AddTraceSource ("LastRetransmittedInterestDataDelay", "Delay between last retransmitted Interest and received Data",
+                     MakeTraceSourceAccessor (&Consumer::m_lastRetransmittedInterestDataDelay))
+
+    .AddTraceSource ("FirstInterestDataDelay", "Delay between first transmitted Interest and received Data",
+                     MakeTraceSourceAccessor (&Consumer::m_firstInterestDataDelay))
+>>>>>>> upstream/master
     ;
 
   return tid;
@@ -174,21 +179,10 @@ Consumer::SendPacket ()
 
   uint32_t seq=std::numeric_limits<uint32_t>::max (); //invalid
 
-  // std::cout << Simulator::Now ().ToDouble (Time::S) << "s max -> " << m_seqMax << "\n";
-  
   while (m_retxSeqs.size ())
     {
       seq = *m_retxSeqs.begin ();
       m_retxSeqs.erase (m_retxSeqs.begin ());
-
-      // NS_ASSERT (m_seqLifetimes.find (seq) != m_seqLifetimes.end ());
-      // if (m_seqLifetimes.find (seq)->time <= Simulator::Now ())
-      //   {
-          
-      //     NS_LOG_DEBUG ("Expire " << seq);
-      //     m_seqLifetimes.erase (seq); // lifetime expired. Trying to find another unexpired sequence number
-      //     continue;
-      //   }
       break;
     }
 
@@ -204,8 +198,6 @@ Consumer::SendPacket ()
       
       seq = m_seq++;
     }
-  
-  // std::cout << Simulator::Now ().ToDouble (Time::S) << "s -> " << seq << "\n";
   
   //
   Ptr<NameComponents> nameWithSequence = Create<NameComponents> (m_interestName);
@@ -226,7 +218,8 @@ Consumer::SendPacket ()
   //NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");
   
   m_seqTimeouts.insert (SeqTimeout (seq, Simulator::Now ()));
-  m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now () + m_interestLifeTime)); // only one insert will work. if entry exists, nothing will happen... nothing should happen
+  m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now ()));
+  
   m_transmittedInterests (&interestHeader, this, m_face);
 
   m_rtt->SentSeq (SequenceNumber32 (seq), 1);
@@ -256,14 +249,18 @@ Consumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
   uint32_t seq = boost::lexical_cast<uint32_t> (contentObject->GetName ().GetComponents ().back ());
   NS_LOG_INFO ("=DATA for "<< Consumer::m_interestName<<"/" << seq<<" arrived. node: "<<GetNode()->GetId());
 
-  // SeqTimeoutsContainer::iterator entry = m_seqTimeouts.find (seq);
+  SeqTimeoutsContainer::iterator entry = m_seqTimeouts.find (seq);
+  if (entry != m_seqTimeouts.end ())
+    {
+      m_lastRetransmittedInterestDataDelay (this, seq, Simulator::Now () - entry->time);
+    }
 
-  //  NS_ASSERT_MSG (entry != m_seqTimeouts.end (),
-  //             "Comment out this assert, if it causes problems");
-
-  // if (entry != m_seqTimeouts.end ())
-  //   m_seqTimeouts.erase (entry);
-
+  entry = m_seqLifetimes.find (seq);
+  if (entry != m_seqLifetimes.end ())
+    {
+      m_firstInterestDataDelay (this, seq, Simulator::Now () - entry->time);
+    }
+  
   m_seqLifetimes.erase (seq);
   m_seqTimeouts.erase (seq);
   m_retxSeqs.erase (seq);
