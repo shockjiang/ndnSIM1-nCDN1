@@ -111,7 +111,8 @@ main (int argc, char *argv[])
   Simulator::Stop (Seconds (20.0));
 
   boost::tuple< boost::shared_ptr<std::ostream>, std::list<Ptr<ndn::AppDelayTracer> > >
-    tracers = ndn::AppDelayTracer::InstallAll ("app-delays-trace.txt");
+  tracers = ndn::AppDelayTracer::InstallAll ("app-delays-trace.txt");
+  //tracers = ndn::AppDelayTracer::InstallAll ("app-delays-trace.txt");
   
   Simulator::Run ();
   Simulator::Destroy ();

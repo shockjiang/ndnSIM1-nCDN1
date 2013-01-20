@@ -84,7 +84,6 @@ Consumer::GetTypeId (void)
 
     .AddTraceSource ("FirstInterestDataDelay", "Delay between first transmitted Interest and received Data",
                      MakeTraceSourceAccessor (&Consumer::m_firstInterestDataDelay))
->>>>>>> upstream/master
     ;
 
   return tid;
@@ -182,6 +181,7 @@ Consumer::SendPacket ()
   while (m_retxSeqs.size ())
     {
       seq = *m_retxSeqs.begin ();
+      NS_LOG_DEBUG("retransmission: "<<m_interestName<<"/"<<seq<<" node: "<<GetNode()->GetId());
       m_retxSeqs.erase (m_retxSeqs.begin ());
       break;
     }
@@ -218,8 +218,13 @@ Consumer::SendPacket ()
   //NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");
   
   m_seqTimeouts.insert (SeqTimeout (seq, Simulator::Now ()));
-  m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now ()));
   
+//  SeqTimeoutsContainer::iterator entry = m_seqLifetimes.find (seq);
+//  if (entry == m_seqLifetimes.end())
+	  m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now ()));
+//  else{
+//	  NS_LOG_DEBUG("node "<<GetNode()->GetId()<<" seq "<<seq<<" already exist");
+//  }
   m_transmittedInterests (&interestHeader, this, m_face);
 
   m_rtt->SentSeq (SequenceNumber32 (seq), 1);
@@ -253,6 +258,9 @@ Consumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
   if (entry != m_seqTimeouts.end ())
     {
       m_lastRetransmittedInterestDataDelay (this, seq, Simulator::Now () - entry->time);
+    } else{
+    	NS_LOG_DEBUG("error: "<<Consumer::m_interestName<<"/" << seq<<" node: "<<GetNode()->GetId());
+    	return;
     }
 
   entry = m_seqLifetimes.find (seq);
@@ -290,9 +298,11 @@ Consumer::OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> origPac
 
   // NS_LOG_INFO ("Received NACK: " << boost::cref(*interest));
   uint32_t seq = boost::lexical_cast<uint32_t> (interest->GetName ().GetComponents ().back ());
-  NS_LOG_INFO ("< NACK for " << seq);
+  NS_LOG_DEBUG ("< NACK for " << seq);
   // std::cout << Simulator::Now ().ToDouble (Time::S) << "s -> " << "NACK for " << seq << "\n"; 
 
+  SeqTimeoutsContainer::iterator entry = m_seqTimeouts.find (seq);
+  //m_seqTimeouts.erase(seq);
   // put in the queue of interests to be retransmitted
   // NS_LOG_INFO ("Before: " << m_retxSeqs.size ());
   m_retxSeqs.insert (seq);
@@ -305,9 +315,8 @@ Consumer::OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> origPac
 void
 Consumer::OnTimeout (uint32_t sequenceNumber)
 {
-  NS_LOG_FUNCTION (sequenceNumber);
+  NS_LOG_DEBUG (this<<"seq: "<<sequenceNumber<<" node: "<<GetNode()->GetId());
   // std::cout << Simulator::Now () << ", TO: " << sequenceNumber << ", current RTO: " << m_rtt->RetransmitTimeout ().ToDouble (Time::S) << "s\n";
-
   m_rtt->IncreaseMultiplier ();             // Double the next RTO
   m_rtt->SentSeq (SequenceNumber32 (sequenceNumber), 1); // make sure to disable RTT calculation for this sample
   m_retxSeqs.insert (sequenceNumber);

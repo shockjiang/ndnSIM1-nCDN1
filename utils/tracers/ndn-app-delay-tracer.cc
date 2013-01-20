@@ -31,6 +31,7 @@
 #include "ns3/simulator.h"
 #include "ns3/node-list.h"
 #include "ns3/log.h"
+#include "ns3/ndnSIM-module.h"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
@@ -115,7 +116,7 @@ AppDelayTracer::Connect ()
   Config::ConnectWithoutContext ("/NodeList/"+m_node+"/ApplicationList/*/LastRetransmittedInterestDataDelay",
                                  MakeCallback (&AppDelayTracer::LastRetransmittedInterestDataDelay, this));
 
-  Config::ConnectWithoutContext ("/NodeList/"+m_node+"/ApplicationList/*/LastRetransmittedInterestDataDelay",
+  Config::ConnectWithoutContext ("/NodeList/"+m_node+"/ApplicationList/*/FirstInterestDataDelay",
                                  MakeCallback (&AppDelayTracer::FirstInterestDataDelay, this));
 }
 
