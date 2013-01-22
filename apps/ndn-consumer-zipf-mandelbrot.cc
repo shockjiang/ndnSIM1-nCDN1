@@ -23,6 +23,9 @@
 #include "ns3/ndn-app-face.h"
 #include "ns3/ndn-interest.h"
 #include "ns3/ndn-content-object.h"
+
+#include "ns3/ndnSIM/utils/ndn-fw-hop-count-tag.h"
+
 #include <math.h>
 
 
@@ -165,11 +168,20 @@ ConsumerZipfMandelbrot::SendPacket() {
   NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");
 
   m_seqTimeouts.insert (SeqTimeout (seq, Simulator::Now ()));
-  m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now ()));
+  m_seqFullDelay.insert (SeqTimeout (seq, Simulator::Now ()));
+
+  m_seqLastDelay.erase (seq);
+  m_seqLastDelay.insert (SeqTimeout (seq, Simulator::Now ()));
+
+  m_seqRetxCounts[seq] ++;
+  
   m_transmittedInterests (&interestHeader, this, m_face);
 
   m_rtt->SentSeq (SequenceNumber32 (seq), 1);
 
+  FwHopCountTag hopCountTag;
+  packet->AddPacketTag (hopCountTag);
+  
   m_protocolHandler (packet);
 
   ConsumerZipfMandelbrot::ScheduleNextPacket ();

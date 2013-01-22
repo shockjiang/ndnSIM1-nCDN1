@@ -32,7 +32,7 @@
 #include "ns3/ndn-app-face.h"
 #include "ns3/ndn-interest.h"
 #include "ns3/ndn-content-object.h"
-// #include "ns3/weights-path-stretch-tag.h"
+#include "ns3/ndnSIM/utils/ndn-fw-hop-count-tag.h"
 
 #include <boost/ref.hpp>
 #include <boost/lexical_cast.hpp>
@@ -75,9 +75,6 @@ Consumer::GetTypeId (void)
                    StringValue ("50ms"),
                    MakeTimeAccessor (&Consumer::GetRetxTimer, &Consumer::SetRetxTimer),
                    MakeTimeChecker ())
-
-    .AddTraceSource ("PathWeightsTrace", "PathWeightsTrace",
-                    MakeTraceSourceAccessor (&Consumer::m_pathWeightsTrace))
 
     .AddTraceSource ("LastRetransmittedInterestDataDelay", "Delay between last retransmitted Interest and received Data",
                      MakeTraceSourceAccessor (&Consumer::m_lastRetransmittedInterestDataDelay))
@@ -218,17 +215,20 @@ Consumer::SendPacket ()
   //NS_LOG_DEBUG ("Trying to add " << seq << " with " << Simulator::Now () << ". already " << m_seqTimeouts.size () << " items");
   
   m_seqTimeouts.insert (SeqTimeout (seq, Simulator::Now ()));
-  
-//  SeqTimeoutsContainer::iterator entry = m_seqLifetimes.find (seq);
-//  if (entry == m_seqLifetimes.end())
-	  m_seqLifetimes.insert (SeqTimeout (seq, Simulator::Now ()));
-//  else{
-//	  NS_LOG_DEBUG("node "<<GetNode()->GetId()<<" seq "<<seq<<" already exist");
-//  }
+  m_seqFullDelay.insert (SeqTimeout (seq, Simulator::Now ()));
+
+  m_seqLastDelay.erase (seq);
+  m_seqLastDelay.insert (SeqTimeout (seq, Simulator::Now ()));
+
+  m_seqRetxCounts[seq] ++;
+
   m_transmittedInterests (&interestHeader, this, m_face);
 
   m_rtt->SentSeq (SequenceNumber32 (seq), 1);
 
+  FwHopCountTag hopCountTag;
+  packet->AddPacketTag (hopCountTag);
+  
   m_protocolHandler (packet);
 
   ScheduleNextPacket ();
@@ -254,35 +254,38 @@ Consumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
   uint32_t seq = boost::lexical_cast<uint32_t> (contentObject->GetName ().GetComponents ().back ());
   NS_LOG_INFO ("=DATA for "<< Consumer::m_interestName<<"/" << seq<<" arrived. node: "<<GetNode()->GetId());
 
-  SeqTimeoutsContainer::iterator entry = m_seqTimeouts.find (seq);
-  if (entry != m_seqTimeouts.end ())
+  int hopCount = -1;
+  FwHopCountTag hopCountTag;
+  if (payload->RemovePacketTag (hopCountTag))
     {
-      m_lastRetransmittedInterestDataDelay (this, seq, Simulator::Now () - entry->time);
-    } else{
-    	NS_LOG_DEBUG("error: "<<Consumer::m_interestName<<"/" << seq<<" node: "<<GetNode()->GetId());
-    	return;
-    }
+      hopCount = hopCountTag.Get ();
 
-  entry = m_seqLifetimes.find (seq);
-  if (entry != m_seqLifetimes.end ())
-    {
-      m_firstInterestDataDelay (this, seq, Simulator::Now () - entry->time);
+
+	  SeqTimeoutsContainer::iterator entry = m_seqLastDelay.find (seq);
+	//  if (entry != m_seqLastDelay.end ())
+	//    {
+		  m_lastRetransmittedInterestDataDelay (this, seq, Simulator::Now () - entry->time, hopCount);
+	//    } else {
+	//    	NS_LOG_DEBUG("error: "<<Consumer::m_interestName<<"/" << seq<<" node: "<<GetNode()->GetId());
+	//    	return;
+	//    }
+
+	  entry = m_seqFullDelay.find (seq);
+	  if (entry != m_seqFullDelay.end ())
+		{
+		  m_firstInterestDataDelay (this, seq, Simulator::Now () - entry->time, m_seqRetxCounts[seq], hopCount);
+		}
+    } else{
+    	NS_LOG_DEBUG("hopcount=-1 because of failling removing tag");
     }
+  m_seqRetxCounts.erase (seq);  
+  m_seqFullDelay.erase (seq);
+  m_seqLastDelay.erase (seq);
   
-  m_seqLifetimes.erase (seq);
   m_seqTimeouts.erase (seq);
   m_retxSeqs.erase (seq);
 
   m_rtt->AckSeq (SequenceNumber32 (seq));
-
-  // Ptr<const WeightsPathStretchTag> tag = payload->RemovePacketTag<WeightsPathStretchTag> ();
-  // if (tag != 0)
-  //   {
-  //     // Notify trace about path weights vector (e.g., for path-stretch calculation)
-  //     m_pathWeightsTrace (GetNode (), tag->GetSourceNode (), seq, tag->GetTotalWeight ());
-  //     // if (Names::FindName (GetNode ()) == "36")// || Names::FindName (GetNode ()) == "40"|| Names::FindName (GetNode ()) == "5")
-  //     //   std::cout << Simulator::Now () << "\t" << boost::cref(*tag) << " = " << tag->GetTotalWeight () << "\n";
-  //   }
 }
 
 void
@@ -298,7 +301,7 @@ Consumer::OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> origPac
 
   // NS_LOG_INFO ("Received NACK: " << boost::cref(*interest));
   uint32_t seq = boost::lexical_cast<uint32_t> (interest->GetName ().GetComponents ().back ());
-  NS_LOG_DEBUG ("< NACK for " << seq);
+  NS_LOG_DEBUG ("<Nack for " << seq);
   // std::cout << Simulator::Now ().ToDouble (Time::S) << "s -> " << "NACK for " << seq << "\n"; 
 
   SeqTimeoutsContainer::iterator entry = m_seqTimeouts.find (seq);

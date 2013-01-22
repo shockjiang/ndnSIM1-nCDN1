@@ -222,6 +222,41 @@ Application-level trace helper
         
         ...
 
+    Output file format is tab-separated values, with first row specifying names of the columns.  Refer to the following table for the description of the columns:
+
+    +-----------------+---------------------------------------------------------------------+
+    | Column          | Description                                                         |
+    +=================+=====================================================================+
+    | ``Node``        | node id, global unique                                              |
+    +-----------------+---------------------------------------------------------------------+
+    | ``AppId``       | app id, local unique on the node, not global                        |
+    +-----------------+---------------------------------------------------------------------+
+    | ``SeqNo``       | seq number of the Interest-Data                                     |
+    +-----------------+---------------------------------------------------------------------+
+    | ``Type``        | Type of delay:                                                      |
+    |                 |                                                                     |
+    |                 | - ``LastDelay`` means that ``DelayS`` and ``DelayUS`` represent     |
+    |                 |   delay between last Interest sent and Data packet received         |
+    |                 | - ``FullDelay`` means that ``DelayS`` and ``DelayUS`` represent     |
+    |                 |   delay between first Interest sent and Data packet received        |
+    |                 |   (i.e., includes time of Interest retransmissions)                 |
+    +-----------------+---------------------------------------------------------------------+
+    | ``DelayS``      | delay value, specified in seconds                                   |
+    +-----------------+---------------------------------------------------------------------+
+    | ``DelayUS``     | delay value, specified in microseconds (10^-6)                      |
+    +-----------------+---------------------------------------------------------------------+
+    | ``RetxCount``   | number of Interest retransmissions (for LastDelay always equal to 1)|
+    +-----------------+---------------------------------------------------------------------+
+    | ``HopCount``    | combined number of number of hops for Interest and Data packet.     |
+    |                 | Note that HopCount is increased anytime somebody calls Send method  |
+    |                 | on a face, including delivery of Interest/Data to application via   |
+    |                 | an AppFace (but not from application to ndn::L3Protocol!).          |
+    |                 |                                                                     |
+    |                 | One consequence is that Interests satisfied by an app will have     |
+    |                 | even hop count (min hop count = 2), and Interests satisfied from    |
+    |                 | caches will have off hop count (min hop count = 1)                  |
+    +-----------------+---------------------------------------------------------------------+
+
 .. _app delay trace helper example:
 
 Example of application-level trace helper
