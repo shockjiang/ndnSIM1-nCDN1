@@ -122,7 +122,7 @@ Nacks::DidReceiveDuplicateInterest (Ptr<Face> inFace,
       FwHopCountTag hopCountTag;
       if (origPacket->PeekPacketTag (hopCountTag))
         {
-     	  packet->AddPacketTag (hopCountTag);
+     	  nack->AddPacketTag (hopCountTag);
         }
       else
         {
@@ -210,7 +210,7 @@ Nacks::DidReceiveValidNack (Ptr<Face> inFace,
       FwHopCountTag hopCountTag;
       if (origPacket->PeekPacketTag (hopCountTag))
         {
-     	  packet->AddPacketTag (hopCountTag);
+     	  nonNackInterest->AddPacketTag (hopCountTag);
         }
       else
         {
