@@ -36,10 +36,10 @@ NS_LOG_COMPONENT_DEFINE ("ndn.Serialization");
 void
 InterestSerializationTest::DoRun ()
 {
-  InterestHeader source;
+  Interest source;
   
-  source.SetName (Create<NameComponents> (boost::lexical_cast<NameComponents> ("/test/test2")));
-  NS_TEST_ASSERT_MSG_EQ (source.GetName (), boost::lexical_cast<NameComponents> ("/test/test2"), "set/get name failed");
+  source.SetName (Create<Name> (boost::lexical_cast<Name> ("/test/test2")));
+  NS_TEST_ASSERT_MSG_EQ (source.GetName (), boost::lexical_cast<Name> ("/test/test2"), "set/get name failed");
   
   source.SetScope (2);
   NS_TEST_ASSERT_MSG_EQ (source.GetScope (), 2, "set/get scope failed");
@@ -58,7 +58,7 @@ InterestSerializationTest::DoRun ()
   packet.AddHeader (source);
 	
   //deserialization
-  InterestHeader target;
+  Interest target;
   packet.RemoveHeader (target);
   
   NS_TEST_ASSERT_MSG_EQ (source.GetName ()            , target.GetName ()            , "source/target name failed");
@@ -71,10 +71,10 @@ InterestSerializationTest::DoRun ()
 void
 ContentObjectSerializationTest::DoRun ()
 {
-  ContentObjectHeader source;
+  ContentObject source;
   
-  source.SetName (Create<NameComponents> (boost::lexical_cast<NameComponents> ("/test/test2/1")));
-  NS_TEST_ASSERT_MSG_EQ (source.GetName (), boost::lexical_cast<NameComponents> ("/test/test2/1"), "set/get name failed");
+  source.SetName (Create<Name> (boost::lexical_cast<Name> ("/test/test2/1")));
+  NS_TEST_ASSERT_MSG_EQ (source.GetName (), boost::lexical_cast<Name> ("/test/test2/1"), "set/get name failed");
   
   source.SetFreshness (Seconds (10));
   NS_TEST_ASSERT_MSG_EQ (source.GetFreshness (), Seconds (10), "set/get freshness failed");
@@ -82,17 +82,25 @@ ContentObjectSerializationTest::DoRun ()
   source.SetTimestamp (Seconds (100));
   NS_TEST_ASSERT_MSG_EQ (source.GetTimestamp (), Seconds (100), "set/get timestamp failed");
 
+  NS_TEST_ASSERT_MSG_EQ (source.GetSignature (), 0, "initialization of signature failed");
+  int size = source.GetSerializedSize ();  
+  source.SetSignature (10);
+  NS_TEST_ASSERT_MSG_EQ (source.GetSignature (), 10, "set/get signature failed");
+
+  NS_TEST_ASSERT_MSG_EQ (source.GetSerializedSize (), size + 4, "Signature size should have increased by 4");
+  
   Packet packet (0);
   //serialization
   packet.AddHeader (source);
 	
   //deserialization
-  ContentObjectHeader target;
+  ContentObject target;
   packet.RemoveHeader (target);
   
   NS_TEST_ASSERT_MSG_EQ (source.GetName ()     , target.GetName ()     , "source/target name failed");
   NS_TEST_ASSERT_MSG_EQ (source.GetFreshness (), target.GetFreshness (), "source/target freshness failed");
   NS_TEST_ASSERT_MSG_EQ (source.GetTimestamp (), target.GetTimestamp (), "source/target timestamp failed");
+  NS_TEST_ASSERT_MSG_EQ (source.GetSignature (), target.GetSignature (), "source/target signature failed");
 }
 
 }

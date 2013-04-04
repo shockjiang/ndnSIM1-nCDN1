@@ -25,7 +25,7 @@
 #include "ndn-app.h"
 
 #include "ns3/ptr.h"
-#include "ns3/ndn-name-components.h"
+#include "ns3/ndn-name.h"
 #include "ns3/ndn-content-object.h"
 
 namespace ns3 {
@@ -48,7 +48,7 @@ public:
   Producer ();
 
   // inherited from NdnApp
-  void OnInterest (const Ptr<const InterestHeader> &interest, Ptr<Packet> packet);
+  void OnInterest (const Ptr<const Interest> &interest, Ptr<Packet> packet);
 
 protected:
   // inherited from Application base class.
@@ -59,7 +59,7 @@ protected:
   StopApplication ();     // Called at time specified by Stop
 
 private:
-  NameComponents m_prefix;
+  Name m_prefix;
   uint32_t m_virtualPayloadSize;
   Time m_freshness;
 };

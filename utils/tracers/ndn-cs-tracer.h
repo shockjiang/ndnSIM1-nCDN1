@@ -39,8 +39,11 @@ class Packet;
 
 namespace ndn {
 
-class InterestHeader;
-class ContentObjectHeader;
+class Interest;
+class ContentObject;
+
+typedef Interest InterestHeader;
+typedef ContentObject ContentObjectHeader;
 
 namespace cs {
 
@@ -117,10 +120,10 @@ private:
   Connect ();
 
   void 
-  CacheHits (Ptr<const InterestHeader>, Ptr<const ContentObjectHeader>);
+  CacheHits (Ptr<const Interest>, Ptr<const ContentObject>);
   
   void 
-  CacheMisses (Ptr<const InterestHeader>);
+  CacheMisses (Ptr<const Interest>);
 
 private:
   void

@@ -64,8 +64,8 @@ Consumer::GetTypeId (void)
 
     .AddAttribute ("Prefix","Name of the Interest",
                    StringValue ("/"),
-                   MakeNameComponentsAccessor (&Consumer::m_interestName),
-                   MakeNameComponentsChecker ())
+                   MakeNameAccessor (&Consumer::m_interestName),
+                   MakeNameChecker ())
     .AddAttribute ("LifeTime", "LifeTime for interest packet",
                    StringValue ("2s"),
                    MakeTimeAccessor (&Consumer::m_interestLifeTime),
@@ -198,11 +198,11 @@ Consumer::SendPacket ()
     }
 
   //
-  Ptr<NameComponents> nameWithSequence = Create<NameComponents> (m_interestName);
+  Ptr<Name> nameWithSequence = Create<Name> (m_interestName);
   (*nameWithSequence) (seq);
   //
 
-  InterestHeader interestHeader;
+  Interest interestHeader;
   interestHeader.SetNonce               (m_rand.GetValue ());
   interestHeader.SetName                (nameWithSequence);
   interestHeader.SetInterestLifetime    (m_interestLifeTime);
@@ -242,7 +242,7 @@ Consumer::SendPacket ()
 
 
 void
-Consumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
+Consumer::OnContentObject (const Ptr<const ContentObject> &contentObject,
                                Ptr<Packet> payload)
 {
   if (!m_active) return;
@@ -286,7 +286,7 @@ Consumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
 }
 
 void
-Consumer::OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> origPacket)
+Consumer::OnNack (const Ptr<const Interest> &interest, Ptr<Packet> origPacket)
 {
   if (!m_active) return;
 

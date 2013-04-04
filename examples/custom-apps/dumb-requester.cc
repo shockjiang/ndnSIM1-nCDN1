@@ -48,8 +48,8 @@ DumbRequester::GetTypeId ()
 
     .AddAttribute ("Prefix", "Requested name",
                    StringValue ("/dumb-interest"),
-                   ndn::MakeNameComponentsAccessor (&DumbRequester::m_name),
-                   ndn::MakeNameComponentsChecker ())
+                   ndn::MakeNameAccessor (&DumbRequester::m_name),
+                   ndn::MakeNameChecker ())
     ;
   return tid;
 }
@@ -88,16 +88,16 @@ DumbRequester::SendInterest ()
   // Sending one Interest packet out //
   /////////////////////////////////////
   
-  Ptr<ndn::NameComponents> prefix = Create<ndn::NameComponents> (m_name); // another way to create name
+  Ptr<ndn::Name> prefix = Create<ndn::Name> (m_name); // another way to create name
 
-  // Create and configure ndn::InterestHeader
-  ndn::InterestHeader interestHeader;
+  // Create and configure ndn::Interest
+  ndn::Interest interestHeader;
   UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
   interestHeader.SetNonce            (rand.GetValue ());
   interestHeader.SetName             (prefix);
   interestHeader.SetInterestLifetime (Seconds (1.0));
 
-  // Create packet and add ndn::InterestHeader
+  // Create packet and add ndn::Interest
   Ptr<Packet> packet = Create<Packet> ();
   packet->AddHeader (interestHeader);
 
@@ -112,7 +112,7 @@ DumbRequester::SendInterest ()
 }
 
 void
-DumbRequester::OnContentObject (const Ptr<const ndn::ContentObjectHeader> &contentObject,
+DumbRequester::OnContentObject (const Ptr<const ndn::ContentObject> &contentObject,
                                 Ptr<Packet> payload)
 {
   NS_LOG_DEBUG ("Receiving ContentObject packet for " << contentObject->GetName ());

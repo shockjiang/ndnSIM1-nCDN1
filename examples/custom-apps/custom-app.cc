@@ -58,7 +58,7 @@ CustomApp::StartApplication ()
   ndn::App::StartApplication ();
 
   // Create a name components object for name ``/prefix/sub``
-  Ptr<ndn::NameComponents> prefix = Create<ndn::NameComponents> (); // now prefix contains ``/``
+  Ptr<ndn::Name> prefix = Create<ndn::Name> (); // now prefix contains ``/``
   prefix->Add ("prefix"); // now prefix contains ``/prefix``
   prefix->Add ("sub"); // now prefix contains ``/prefix/sub``
 
@@ -91,16 +91,16 @@ CustomApp::SendInterest ()
   // Sending one Interest packet out //
   /////////////////////////////////////
   
-  Ptr<ndn::NameComponents> prefix = Create<ndn::NameComponents> ("/prefix/sub"); // another way to create name
+  Ptr<ndn::Name> prefix = Create<ndn::Name> ("/prefix/sub"); // another way to create name
 
-  // Create and configure ndn::InterestHeader
-  ndn::InterestHeader interestHeader;
+  // Create and configure ndn::Interest
+  ndn::Interest interestHeader;
   UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
   interestHeader.SetNonce            (rand.GetValue ());
   interestHeader.SetName             (prefix);
   interestHeader.SetInterestLifetime (Seconds (1.0));
 
-  // Create packet and add ndn::InterestHeader
+  // Create packet and add ndn::Interest
   Ptr<Packet> packet = Create<Packet> ();
   packet->AddHeader (interestHeader);
 
@@ -115,17 +115,17 @@ CustomApp::SendInterest ()
 
 // Callback that will be called when Interest arrives
 void
-CustomApp::OnInterest (const Ptr<const ndn::InterestHeader> &interest, Ptr<Packet> origPacket)
+CustomApp::OnInterest (const Ptr<const ndn::Interest> &interest, Ptr<Packet> origPacket)
 {
   NS_LOG_DEBUG ("Received Interest packet for " << interest->GetName ());
 
-  // Create and configure ndn::ContentObjectHeader and ndn::ContentObjectTail
+  // Create and configure ndn::ContentObject and ndn::ContentObjectTail
   // (header is added in front of the packet, tail is added at the end of the packet)
 
   // Note that Interests send out by the app will not be sent back to the app !
   
-  ndn::ContentObjectHeader data;
-  data.SetName (Create<ndn::NameComponents> (interest->GetName ())); // data will have the same name as Interests
+  ndn::ContentObject data;
+  data.SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
 
   ndn::ContentObjectTail trailer; // doesn't require any configuration
 
@@ -145,7 +145,7 @@ CustomApp::OnInterest (const Ptr<const ndn::InterestHeader> &interest, Ptr<Packe
 
 // Callback that will be called when Data arrives
 void
-CustomApp::OnContentObject (const Ptr<const ndn::ContentObjectHeader> &contentObject,
+CustomApp::OnContentObject (const Ptr<const ndn::ContentObject> &contentObject,
                             Ptr<Packet> payload)
 {
   NS_LOG_DEBUG ("Receiving ContentObject packet for " << contentObject->GetName ());

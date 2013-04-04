@@ -23,7 +23,7 @@
 #include "ndn-content-store.h"
 #include "ns3/log.h"
 #include "ns3/packet.h"
-#include "ns3/ndn-name-components.h"
+#include "ns3/ndn-name.h"
 #include "ns3/ndn-interest.h"
 #include "ns3/ndn-content-object.h"
 
@@ -60,7 +60,7 @@ namespace cs {
 
 //////////////////////////////////////////////////////////////////////
 
-Entry::Entry (Ptr<ContentStore> cs, Ptr<const ContentObjectHeader> header, Ptr<const Packet> packet)
+Entry::Entry (Ptr<ContentStore> cs, Ptr<const ContentObject> header, Ptr<const Packet> packet)
   : m_cs (cs)
   , m_header (header)
   , m_packet (packet->Copy ())
@@ -78,13 +78,13 @@ Entry::GetFullyFormedNdnPacket () const
   return packet;
 }
 
-const NameComponents&
+const Name&
 Entry::GetName () const
 {
   return m_header->GetName ();
 }
 
-Ptr<const ContentObjectHeader>
+Ptr<const ContentObject>
 Entry::GetHeader () const
 {
   return m_header;

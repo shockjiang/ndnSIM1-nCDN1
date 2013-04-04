@@ -39,8 +39,11 @@ namespace ndn {
 
 class Face;
 class ForwardingStrategy;
-class InterestHeader;
-class ContentObjectHeader;
+class Interest;
+class ContentObject;
+
+typedef Interest InterestHeader;
+typedef ContentObject ContentObjectHeader;
 
 /**
  * \defgroup ndn ndnSIM: NDN simulation module

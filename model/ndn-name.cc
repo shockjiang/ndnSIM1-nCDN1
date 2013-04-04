@@ -19,7 +19,7 @@
  *         Ilya Moiseenko <iliamo@cs.ucla.edu>
  */
 
-#include "ndn-name-components.h"
+#include "ndn-name.h"
 #include <boost/foreach.hpp>
 #include "ns3/log.h"
 
@@ -33,7 +33,6 @@ namespace ns3 {
 namespace ndn {
 
 ATTRIBUTE_HELPER_CPP (Name);
-ATTRIBUTE_HELPER_CPP (NameComponents);
 
 Name::Name (/* root */)
 {
@@ -44,6 +43,14 @@ Name::Name (const std::list<boost::reference_wrapper<const std::string> > &compo
   BOOST_FOREACH (const boost::reference_wrapper<const std::string> &component, components)
     {
       Add (component.get ());
+    }
+}
+
+Name::Name (const std::list<std::string> &components)
+{
+  BOOST_FOREACH (const std::string &component, components)
+    {
+      Add (component);
     }
 }
 

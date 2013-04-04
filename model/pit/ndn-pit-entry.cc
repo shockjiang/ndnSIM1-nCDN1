@@ -21,7 +21,7 @@
 #include "ndn-pit-entry.h"
 
 #include "ns3/ndn-fib.h"
-#include "ns3/ndn-name-components.h"
+#include "ns3/ndn-name.h"
 #include "ns3/ndn-interest.h"
 
 #include "ns3/simulator.h"
@@ -39,7 +39,7 @@ namespace ndn {
 namespace pit {
 
 Entry::Entry (Pit &container,
-              Ptr<const InterestHeader> header,
+              Ptr<const Interest> header,
               Ptr<fib::Entry> fibEntry)
   : m_container (container)
   , m_interest (header)
@@ -82,7 +82,7 @@ Entry::OffsetLifetime (const Time &offsetTime)
 }
 
 
-const NameComponents &
+const Name &
 Entry::GetPrefix () const
 {
   return m_interest->GetName ();
@@ -219,7 +219,6 @@ Entry::AreTherePromisingOutgoingFacesExcept (Ptr<Face> face) const
 void
 Entry::IncreaseAllowedRetxCount ()
 {
-  NS_LOG_ERROR (this);
   if (Simulator::Now () - m_lastRetransmission >= MilliSeconds (100))
     {
       // cheat:
@@ -260,7 +259,7 @@ Entry::GetMaxRetxCount () const
   return m_maxRetxCount;
 }
 
-Ptr<const InterestHeader>
+Ptr<const Interest>
 Entry::GetInterest () const
 {
   return m_interest;

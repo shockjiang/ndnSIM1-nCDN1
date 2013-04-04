@@ -32,7 +32,7 @@
 #include <vector>
 #include <list>
 
-#include "ndn-name-components.h"
+#include "ndn-name.h"
 
 namespace ns3 {
 namespace ndn {
@@ -43,7 +43,7 @@ namespace ndn {
  * Only few important fields are actually implemented in the simulation
  *
  *
- * ContentObjectHeader serializes/deserializes header up-to and including <Content> tags
+ * ContentObject serializes/deserializes header up-to and including <Content> tags
  * Necessary closing tags should be added using ContentObjectTail
  *
  * This hacks are necessary to optimize memory use (i.e., virtual payload)
@@ -51,7 +51,7 @@ namespace ndn {
  * "<ContentObject><Signature>..</Signature><Name>...</Name><SignedInfo>...</SignedInfo><Content>"
  * 
  */
-class ContentObjectHeader : public SimpleRefCount<ContentObjectHeader,Header>
+class ContentObject : public SimpleRefCount<ContentObject,Header>
 {
 public:
   ////////////////////////////////////////////////////////////////////////////  
@@ -195,14 +195,14 @@ public:
      * Note that only <KeyName> option for the key locator is supported
      */
     void
-    SetKeyLocator (Ptr<const NameComponents> keyLocator);
+    SetKeyLocator (Ptr<const Name> keyLocator);
 
     /**
      * @brief Get key locator
      *
      * Note that only <KeyName> option for the key locator is supported
      */
-    Ptr<const NameComponents>
+    Ptr<const Name>
     GetKeyLocator () const;
     
   private:
@@ -211,7 +211,7 @@ public:
     ContentType m_type;
     Time m_freshness;
     // FinalBlockID
-    Ptr<const NameComponents> m_keyLocator; // support only <KeyName> option for KeyLocator
+    Ptr<const Name> m_keyLocator; // support only <KeyName> option for KeyLocator
   };
 
   ////////////////////////////////////////////////////////////////////////////  
@@ -226,26 +226,26 @@ public:
    *
    * Creates a null header
    **/
-  ContentObjectHeader ();
+  ContentObject ();
 
   /**
    * \brief Set content object name
    *
-   * Sets name of the content object. For example, SetName( NameComponents("prefix")("postfix") );
+   * Sets name of the content object. For example, SetName( Name("prefix")("postfix") );
    **/
   void
-  SetName (const Ptr<NameComponents> &name);
+  SetName (const Ptr<Name> &name);
 
   /**
    * @brief Get name of the content object
    */
-  const NameComponents&
+  const Name&
   GetName () const;
 
   /**
    * @brief Get smart pointer to the interest name (to avoid extra memory usage)
    */
-  Ptr<const NameComponents>
+  Ptr<const Name>
   GetNamePtr () const;
 
   /**
@@ -283,7 +283,7 @@ public:
   
 private:
   Signature  m_signature;
-  Ptr<NameComponents> m_name;
+  Ptr<Name> m_name;
   SignedInfo m_signedInfo;
 };
 
@@ -306,57 +306,57 @@ public:
 };
 
 
-ContentObjectHeader::Signature::Signature ()
+ContentObject::Signature::Signature ()
   : m_digestAlgorithm ("99.0")
   , m_signatureBits (0)
 {
 }
 
 const std::string &
-ContentObjectHeader::Signature::GetDigestAlgorithm () const
+ContentObject::Signature::GetDigestAlgorithm () const
 {
   return m_digestAlgorithm;
 }
 
 void
-ContentObjectHeader::Signature::SetDigestAlgorithm (const std::string &digestAlgorithm)
+ContentObject::Signature::SetDigestAlgorithm (const std::string &digestAlgorithm)
 {
   m_digestAlgorithm = digestAlgorithm;
 }
 
 uint32_t
-ContentObjectHeader::Signature::GetSignatureBits () const
+ContentObject::Signature::GetSignatureBits () const
 {
   return m_signatureBits;
 }
 
 inline void
-ContentObjectHeader::Signature::SetSignatureBits (uint32_t signature)
+ContentObject::Signature::SetSignatureBits (uint32_t signature)
 {
   m_signatureBits = signature;
 }
 
 
-ContentObjectHeader::Signature &
-ContentObjectHeader::GetSignature ()
+ContentObject::Signature &
+ContentObject::GetSignature ()
 {
   return m_signature;
 }
 
-const ContentObjectHeader::Signature &
-ContentObjectHeader::GetSignature () const
+const ContentObject::Signature &
+ContentObject::GetSignature () const
 {
   return m_signature;
 }
 
-ContentObjectHeader::SignedInfo &
-ContentObjectHeader::GetSignedInfo ()
+ContentObject::SignedInfo &
+ContentObject::GetSignedInfo ()
 {
   return m_signedInfo;
 }
 
-const ContentObjectHeader::SignedInfo &
-ContentObjectHeader::GetSignedInfo () const
+const ContentObject::SignedInfo &
+ContentObject::GetSignedInfo () const
 {
   return m_signedInfo;
 }
@@ -365,7 +365,7 @@ ContentObjectHeader::GetSignedInfo () const
  * @ingroup ndn-exceptions
  * @brief Class for ContentObject parsing exception 
  */
-class ContentObjectHeaderException {};
+class ContentObjectException {};
 
 } // namespace ndn
 } // namespace ns3

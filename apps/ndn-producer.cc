@@ -54,8 +54,8 @@ Producer::GetTypeId (void)
     .AddConstructor<Producer> ()
     .AddAttribute ("Prefix","Prefix, for which producer has the data",
                    StringValue ("/"),
-                   MakeNameComponentsAccessor (&Producer::m_prefix),
-                   MakeNameComponentsChecker ())
+                   MakeNameAccessor (&Producer::m_prefix),
+                   MakeNameChecker ())
     .AddAttribute ("PayloadSize", "Virtual payload size for Content packets",
                    UintegerValue (1024),
                    MakeUintegerAccessor(&Producer::m_virtualPayloadSize),
@@ -108,7 +108,7 @@ Producer::StopApplication ()
 
 
 void
-Producer::OnInterest (const Ptr<const InterestHeader> &interest, Ptr<Packet> origPacket)
+Producer::OnInterest (const Ptr<const Interest> &interest, Ptr<Packet> origPacket)
 {
   App::OnInterest (interest, origPacket); // tracing inside
 
@@ -117,8 +117,8 @@ Producer::OnInterest (const Ptr<const InterestHeader> &interest, Ptr<Packet> ori
   if (!m_active) return;
     
   static ContentObjectTail tail;
-  Ptr<ContentObjectHeader> header = Create<ContentObjectHeader> ();
-  header->SetName (Create<NameComponents> (interest->GetName ()));
+  Ptr<ContentObject> header = Create<ContentObject> ();
+  header->SetName (Create<Name> (interest->GetName ()));
   header->SetFreshness (m_freshness);
 
   NS_LOG_INFO ("node("<< GetNode()->GetId() <<") respodning with ContentObject:\n" << boost::cref(*header));

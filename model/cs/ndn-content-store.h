@@ -34,9 +34,14 @@ class Packet;
 
 namespace ndn {
 
-class ContentObjectHeader;
-class InterestHeader;
-class NameComponents;
+class ContentObject;
+class Interest;
+
+typedef Interest InterestHeader;
+typedef ContentObject ContentObjectHeader;
+
+class Name;
+typedef Name NameComponents;
 
 class ContentStore;
 
@@ -65,20 +70,20 @@ public:
    * The constructor will make a copy of the supplied packet and calls
    * RemoveHeader and RemoveTail on the copy.
    */
-  Entry (Ptr<ContentStore> cs, Ptr<const ContentObjectHeader> header, Ptr<const Packet> packet);
+  Entry (Ptr<ContentStore> cs, Ptr<const ContentObject> header, Ptr<const Packet> packet);
 
   /**
    * \brief Get prefix of the stored entry
    * \returns prefix of the stored entry
    */
-  const NameComponents&
+  const Name&
   GetName () const;
 
   /**
-   * \brief Get ContentObjectHeader of the stored entry
-   * \returns ContentObjectHeader of the stored entry
+   * \brief Get ContentObject of the stored entry
+   * \returns ContentObject of the stored entry
    */
-  Ptr<const ContentObjectHeader>
+  Ptr<const ContentObject>
   GetHeader () const;
 
   /**
@@ -90,7 +95,7 @@ public:
 
   /**
    * \brief Convenience method to create a fully formed Ndn packet from stored header and content
-   * \returns A read-write copy of the packet with ContentObjectHeader and ContentObjectTail
+   * \returns A read-write copy of the packet with ContentObject and ContentObjectTail
    */
   Ptr<Packet>
   GetFullyFormedNdnPacket () const;
@@ -103,7 +108,7 @@ public:
 
 private:
   Ptr<ContentStore> m_cs; ///< \brief content store to which entry is added
-  Ptr<const ContentObjectHeader> m_header; ///< \brief non-modifiable ContentObjectHeader
+  Ptr<const ContentObject> m_header; ///< \brief non-modifiable ContentObject
   Ptr<Packet> m_packet; ///< \brief non-modifiable content of the ContentObject packet
 };
 
@@ -142,19 +147,19 @@ public:
    * If an entry is found, it is promoted to the top of most recent
    * used entries index, \see m_contentStore
    */
-  virtual boost::tuple<Ptr<Packet>, Ptr<const ContentObjectHeader>, Ptr<const Packet> >
-  Lookup (Ptr<const InterestHeader> interest) = 0;
+  virtual boost::tuple<Ptr<Packet>, Ptr<const ContentObject>, Ptr<const Packet> >
+  Lookup (Ptr<const Interest> interest) = 0;
 
   /**
    * \brief Add a new content to the content store.
    *
-   * \param header Fully parsed ContentObjectHeader
+   * \param header Fully parsed ContentObject
    * \param packet Fully formed Ndn packet to add to content store
    * (will be copied and stripped down of headers)
    * @returns true if an existing entry was updated, false otherwise
    */
   virtual bool
-  Add (Ptr<const ContentObjectHeader> header, Ptr<const Packet> packet) = 0;
+  Add (Ptr<const ContentObject> header, Ptr<const Packet> packet) = 0;
 
   // /*
   //  * \brief Add a new content to the content store.
@@ -163,7 +168,7 @@ public:
   //  * @returns true if an existing entry was removed, false otherwise
   //  */
   // virtual bool
-  // Remove (Ptr<InterestHeader> header) = 0;
+  // Remove (Ptr<Interest> header) = 0;
 
   /**
    * \brief Print out content store entries
@@ -207,10 +212,10 @@ public:
   GetContentStore (Ptr<Object> node);
 
 protected:
-  TracedCallback<Ptr<const InterestHeader>,
-                 Ptr<const ContentObjectHeader> > m_cacheHitsTrace; ///< @brief trace of cache hits
+  TracedCallback<Ptr<const Interest>,
+                 Ptr<const ContentObject> > m_cacheHitsTrace; ///< @brief trace of cache hits
 
-  TracedCallback<Ptr<const InterestHeader> > m_cacheMissesTrace; ///< @brief trace of cache misses
+  TracedCallback<Ptr<const Interest> > m_cacheMissesTrace; ///< @brief trace of cache misses
 };
 
 inline std::ostream&

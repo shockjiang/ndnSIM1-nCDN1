@@ -1,6 +1,6 @@
 /* -*- Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2011 University of California, Los Angeles
+ * Copyright (c) 2011-2013 University of California, Los Angeles
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -29,7 +29,8 @@
 namespace ns3 {
 namespace ndn {
 
-class InterestHeader;
+class Interest;
+typedef Interest InterestHeader;
 
 /**
  * \ingroup ndn
@@ -60,10 +61,19 @@ public:
    * \todo Implement exclude filters
    *
    * \param interest Interest packet header
-   * \returns If entry found a valid iterator will be returned, otherwise end ()
+   * \returns If entry found a valid iterator (Ptr<fib::Entry>) will be returned, otherwise End () (==0)
    */
   virtual Ptr<fib::Entry>
-  LongestPrefixMatch (const InterestHeader &interest) = 0;
+  LongestPrefixMatch (const Interest &interest) = 0;
+
+  /**
+   * @brief Get FIB entry for the prefix (exact match)
+   *
+   * @param prefix Name for FIB entry
+   * @returns If entry is found, a valid iterator (Ptr<fib::Entry>) will be returned. Otherwise End () (==0)
+   */
+  virtual Ptr<fib::Entry>
+  Find (const Name &prefix) = 0;
   
   /**
    * \brief Add or update FIB entry
@@ -77,7 +87,7 @@ public:
    * @param metric	Routing metric
    */
   virtual Ptr<fib::Entry>
-  Add (const NameComponents &prefix, Ptr<Face> face, int32_t metric) = 0;
+  Add (const Name &prefix, Ptr<Face> face, int32_t metric) = 0;
 
   /**
    * \brief Add or update FIB entry using smart pointer to prefix
@@ -91,7 +101,7 @@ public:
    * @param metric	Routing metric
    */
   virtual Ptr<fib::Entry>
-  Add (const Ptr<const NameComponents> &prefix, Ptr<Face> face, int32_t metric) = 0;
+  Add (const Ptr<const Name> &prefix, Ptr<Face> face, int32_t metric) = 0;
 
   /**
    * @brief Remove FIB entry
@@ -102,7 +112,7 @@ public:
    * @param name	Smart pointer to prefix
    */
   virtual void
-  Remove (const Ptr<const NameComponents> &prefix) = 0;
+  Remove (const Ptr<const Name> &prefix) = 0;
 
   // /**
   //  * @brief Invalidate FIB entry ("Safe" version of Remove)
@@ -111,7 +121,7 @@ public:
   //  * @param name	Smart pointer to prefix
   //  */
   // virtual void
-  // Invalidate (const Ptr<const NameComponents> &prefix) = 0;
+  // Invalidate (const Ptr<const Name> &prefix) = 0;
 
   /**
    * @brief Invalidate all FIB entries

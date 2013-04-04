@@ -31,8 +31,12 @@ class Packet;
 
 namespace ndn {
 
-class InterestHeader;
-class ContentObjectHeader;
+class Interest;
+class ContentObject;
+
+typedef Interest InterestHeader;
+typedef ContentObject ContentObjectHeader;
+
 class App;
 
 /**

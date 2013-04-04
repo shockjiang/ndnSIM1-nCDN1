@@ -32,8 +32,11 @@ namespace ndn {
 
 class L3Protocol;
 class Face;
-class ContentObjectHeader;
-class InterestHeader;
+class ContentObject;
+class Interest;
+
+typedef Interest InterestHeader;
+typedef ContentObject ContentObjectHeader;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -74,7 +77,7 @@ public:
    *          returns 0
    */
   virtual Ptr<pit::Entry>
-  Lookup (const ContentObjectHeader &header) = 0;
+  Lookup (const ContentObject &header) = 0;
 
   /**
    * \brief Find a PIT entry for the given content interest
@@ -83,7 +86,16 @@ public:
    *          return end() iterator
    */
   virtual Ptr<pit::Entry>
-  Lookup (const InterestHeader &header) = 0;
+  Lookup (const Interest &header) = 0;
+
+  /**
+   * @brief Get PIT entry for the prefix (exact match)
+   *
+   * @param prefix Name for PIT entry
+   * @returns If entry is found, a valid iterator (Ptr<pit::Entry>) will be returned. Otherwise End () (==0)
+   */
+  virtual Ptr<pit::Entry>
+  Find (const Name &prefix) = 0;
 
   /**
    * @brief Creates a PIT entry for the given interest
@@ -94,7 +106,7 @@ public:
    * Note. This call assumes that the entry does not exist (i.e., there was a Lookup call before)
    */
   virtual Ptr<pit::Entry>
-  Create (Ptr<const InterestHeader> header) = 0;
+  Create (Ptr<const Interest> header) = 0;
   
   /**
    * @brief Mark PIT entry deleted

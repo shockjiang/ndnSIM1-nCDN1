@@ -31,7 +31,7 @@
 #include <vector>
 #include <list>
 
-#include "ndn-name-components.h"
+#include "ndn-name.h"
 
 namespace ns3 {
 
@@ -40,7 +40,7 @@ class Packet;
 namespace ndn {
 
 /**
-  * @brief NDN InterestHeader and routines to serialize/deserialize
+  * @brief NDN Interest and routines to serialize/deserialize
   *
   * Optimized and simplified formatting of Interest packets 
   *
@@ -83,7 +83,7 @@ namespace ndn {
   *        |							           |	
   *        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   * **/
-class InterestHeader : public SimpleRefCount<InterestHeader, Header>
+class Interest : public SimpleRefCount<Interest, Header>
 {
 public:
   /**
@@ -91,34 +91,43 @@ public:
    *
    * Creates a null header
    **/
-  InterestHeader ();
+  Interest ();
 
   /**
    * @brief Copy constructor
    */
-  InterestHeader (const InterestHeader &interest);
+  Interest (const Interest &interest);
 
   /**
    * \brief Set interest name
    *
-   * Sets name of the interest. For example, SetName( ndnNameComponents("prefix")("postfix") );
-   * @param[in] name const pointer to ndnNameComponents object that contains an interest name
+   * @param name smart pointer to Name
+   *
    **/
   void
-  SetName (Ptr<NameComponents> name);
+  SetName (Ptr<Name> name);
 
+  /**
+   * \brief Another variant to set interest name
+   *
+   * @param name const reference to Name object
+   *
+   **/
+  void
+  SetName (const Name &name);
+  
   /**
    * \brief Get interest name
    *
    * Gets name of the interest.
    **/
-  const NameComponents&
+  const Name&
   GetName () const;
 
   /**
    * @brief Get smart pointer to the interest name (to avoid extra memory usage)
    */
-  Ptr<const NameComponents>
+  Ptr<const Name>
   GetNamePtr () const;
 
   /**
@@ -245,22 +254,24 @@ public:
   /**
    * @brief Cheat for python bindings
    */
-  static Ptr<InterestHeader>
+  static Ptr<Interest>
   GetInterest (Ptr<Packet> packet);
   
 private:
-  Ptr<NameComponents> m_name;    ///< Interest name
+  Ptr<Name> m_name;    ///< Interest name
   uint8_t m_scope;                ///< 0xFF not set, 0 local scope, 1 this host, 2 immediate neighborhood
   Time  m_interestLifetime;      ///< InterestLifetime
   uint32_t m_nonce;              ///< Nonce. not used if zero
   uint8_t  m_nackType;           ///< Negative Acknowledgement type
 };
 
+typedef Interest InterestHeader;
+
 /**
  * @ingroup ndn-exceptions
  * @brief Class for Interest parsing exception 
  */
-class InterestHeaderException {};
+class InterestException {};
 
 } // namespace ndn
 } // namespace ns3

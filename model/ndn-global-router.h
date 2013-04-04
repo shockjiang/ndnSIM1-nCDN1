@@ -35,7 +35,9 @@ namespace ndn {
 
 class L3Protocol;
 class Face;
-class NameComponents;
+class Name;
+
+typedef Name NameComponents;
 
 /**
  * @brief Class representing global router interface for ndnSIM
@@ -54,7 +56,7 @@ public:
   /**
    * @brief List of locally exported prefixes
    */
-  typedef std::list< Ptr<NameComponents> > LocalPrefixList;
+  typedef std::list< Ptr<Name> > LocalPrefixList;
   
   /**
    * \brief Interface ID
@@ -86,7 +88,7 @@ public:
    * @param prefix Prefix
    */
   void
-  AddLocalPrefix (Ptr< NameComponents > prefix);
+  AddLocalPrefix (Ptr< Name > prefix);
 
   /**
    * @brief Add edge to the node

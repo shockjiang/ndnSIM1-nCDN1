@@ -24,7 +24,7 @@
 
 #include "ndn-app.h"
 #include "ns3/random-variable.h"
-#include "ns3/ndn-name-components.h"
+#include "ns3/ndn-name.h"
 #include "ns3/nstime.h"
 #include "ns3/data-rate.h"
 #include "ns3/ndn-rtt-estimator.h"
@@ -58,13 +58,13 @@ public:
 
   // From App
   // virtual void
-  // OnInterest (const Ptr<const InterestHeader> &interest);
+  // OnInterest (const Ptr<const Interest> &interest);
 
   virtual void
-  OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> packet);
+  OnNack (const Ptr<const Interest> &interest, Ptr<Packet> packet);
 
   virtual void
-  OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
+  OnContentObject (const Ptr<const ContentObject> &contentObject,
                    Ptr<Packet> payload);
 
   /**
@@ -126,7 +126,7 @@ protected:
   Ptr<RttEstimator> m_rtt; ///< @brief RTT estimator
 
   Time               m_offTime;             ///< \brief Time interval between packets
-  NameComponents     m_interestName;        ///< \brief NDN Name of the Interest (use NameComponents)
+  Name     m_interestName;        ///< \brief NDN Name of the Interest (use Name)
   Time               m_interestLifeTime;    ///< \brief LifeTime for interest packet
 
 /// @cond include_hidden
