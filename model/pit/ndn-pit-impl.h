@@ -325,8 +325,11 @@ PitImpl<Policy>::Lookup (const Interest &header)
 
   if (!reachLast || lastItem == super::end ())
     return 0;
-  else
-    return lastItem->payload (); // which could also be 0
+  else {
+	  //if ( lastItem->payload()->GetInterest()->IsInterestSet() != header.IsInterestSet())
+	//	  return 0;
+	  return lastItem->payload (); // which could also be 0
+  }
 }
 
 template<class Policy>

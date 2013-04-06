@@ -78,6 +78,11 @@ public:
               Ptr<const Interest> header,
               Ptr<const Packet> origPacket);
 
+  virtual void
+  OnInterestSet (Ptr<Face> face,
+                Ptr<const Interest> header,
+                Ptr<const Packet> origPacket);
+
   /**
    * \brief Actual processing of incoming Ndn content objects
    *
@@ -93,6 +98,11 @@ public:
           Ptr<Packet> payload,
           Ptr<const Packet> origPacket);
 
+  virtual void
+  DataMeetSet (Ptr<Face> face,
+          Ptr<const ContentObject> header,
+          Ptr<Packet> payload,
+          Ptr<const Packet> origPacket);
   /**
    * @brief Event fired just before PIT entry is removed by timeout
    * @param pitEntry PIT entry to be removed

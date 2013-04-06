@@ -125,6 +125,37 @@ Interest::SetNonce (uint32_t nonce)
   m_nonce = nonce;
 }
 
+bool
+Interest::IsInterestSet() const
+{
+	if (m_seqs.size() == 0)
+		return false;
+
+	return true;
+}
+
+
+std::set<uint32_t>
+Interest::GetSeqs() const
+{
+	return m_seqs;
+}
+
+void
+Interest::SetSeqs(uint32_t min, uint32_t max)
+{
+	for (uint32_t i=min; i<=max; i++) {
+		m_seqs.insert(i);
+	}
+}
+
+void
+Interest::RemoveSeq(uint32_t seq)
+{
+	m_seqs.erase(seq);
+}
+
+
 uint32_t
 Interest::GetNonce () const
 {

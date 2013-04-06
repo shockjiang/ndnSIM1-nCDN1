@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <set>
 
 #include "ndn-name.h"
 
@@ -197,6 +198,7 @@ public:
   enum
     {
       NORMAL_INTEREST = 0,
+      INTEREST_SET = 1,
       NACK_LOOP = 10,
       NACK_CONGESTION = 11,
       NACK_GIVEUP_PIT = 12,
@@ -220,6 +222,19 @@ public:
   */
   uint8_t
   GetNack () const;
+
+  bool
+  IsInterestSet() const;
+
+
+  std::set<uint32_t>
+  GetSeqs() const;
+
+  void
+  SetSeqs(uint32_t min, uint32_t max);
+
+  void
+  RemoveSeq(uint32_t seq);
 
   //////////////////////////////////////////////////////////////////
 
@@ -257,8 +272,11 @@ public:
   static Ptr<Interest>
   GetInterest (Ptr<Packet> packet);
   
+public:
+  static const uint32_t SET_MOD = 32;
 private:
   Ptr<Name> m_name;    ///< Interest name
+  std::set<uint32_t> m_seqs; //seqs of the data, the seq contained in the name is minimized one.
   uint8_t m_scope;                ///< 0xFF not set, 0 local scope, 1 this host, 2 immediate neighborhood
   Time  m_interestLifetime;      ///< InterestLifetime
   uint32_t m_nonce;              ///< Nonce. not used if zero

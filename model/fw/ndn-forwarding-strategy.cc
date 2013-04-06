@@ -20,7 +20,7 @@
  */
 
 #include "ndn-forwarding-strategy.h"
-
+#include <sstream>
 #include "ns3/ndn-pit.h"
 #include "ns3/ndn-pit-entry.h"
 #include "ns3/ndn-interest.h"
@@ -135,6 +135,10 @@ ForwardingStrategy::OnInterest (Ptr<Face> inFace,
                                 Ptr<const Interest> header,
                                 Ptr<const Packet> origPacket)
 {
+	if (header->IsInterestSet()) {
+		ForwardingStrategy::OnInterestSet(inFace, header, origPacket);
+		return;
+	}
   m_inInterests (header, inFace);
 
   Ptr<pit::Entry> pitEntry = m_pit->Lookup (*header);
@@ -213,6 +217,91 @@ ForwardingStrategy::OnInterest (Ptr<Face> inFace,
   PropagateInterest (inFace, header, origPacket, pitEntry);
 }
 
+
+
+
+void
+ForwardingStrategy::OnInterestSet (Ptr<Face> inFace,
+                                Ptr<const Interest> header,
+                                Ptr<const Packet> origPacket)
+{
+  m_inInterests (header, inFace);
+
+  Ptr<pit::Entry> pitEntry = m_pit->Lookup (*header);
+  bool similarInterest = true;
+  if (pitEntry == 0)
+    {
+      similarInterest = false;
+      pitEntry = m_pit->Create (header);
+      if (pitEntry != 0)
+        {
+          DidCreatePitEntry (inFace, header, origPacket, pitEntry);
+        }
+      else
+        {
+          FailedToCreatePitEntry (inFace, header, origPacket);
+          return;
+        }
+    }
+
+  bool isDuplicated = true;
+  if (!pitEntry->IsNonceSeen (header->GetNonce ()))
+    {
+      pitEntry->AddSeenNonce (header->GetNonce ());
+      isDuplicated = false;
+    }
+
+  if (isDuplicated)
+    {
+      DidReceiveDuplicateInterest (inFace, header, origPacket, pitEntry);
+      return;
+    }
+
+  Ptr<Packet> contentObject;
+  Ptr<const ContentObject> contentObjectHeader; // used for tracing
+  Ptr<const Packet> payload; // used for tracing
+  boost::tie (contentObject, contentObjectHeader, payload) = m_contentStore->Lookup (header);
+  if (contentObject != 0)
+    {
+      NS_ASSERT (contentObjectHeader != 0);
+
+      FwHopCountTag hopCountTag;
+      if (origPacket->PeekPacketTag (hopCountTag))
+        {
+          contentObject->AddPacketTag (hopCountTag);
+        }
+
+      pitEntry->AddIncoming (inFace/*, Seconds (1.0)*/);
+
+      // Do data plane performance measurements
+      WillSatisfyPendingInterest (0, pitEntry);
+
+      // Actually satisfy pending interest
+      SatisfyPendingInterest (0, contentObjectHeader, payload, contentObject, pitEntry);
+      return;
+    }
+
+  if (similarInterest && ShouldSuppressIncomingInterest (inFace, header, origPacket, pitEntry))
+    {
+      pitEntry->AddIncoming (inFace/*, header->GetInterestLifetime ()*/);
+      // update PIT entry lifetime
+      pitEntry->UpdateLifetime (header->GetInterestLifetime ());
+
+      // Suppress this interest if we're still expecting data from some other face
+      NS_LOG_DEBUG ("Suppress interests");
+      m_dropInterests (header, inFace);
+
+      DidSuppressSimilarInterest (inFace, header, origPacket, pitEntry);
+      return;
+    }
+
+  if (similarInterest)
+    {
+      DidForwardSimilarInterest (inFace, header, origPacket, pitEntry);
+    }
+
+  PropagateInterest (inFace, header, origPacket, pitEntry);
+}
 void
 ForwardingStrategy::OnData (Ptr<Face> inFace,
                             Ptr<const ContentObject> header,
@@ -221,6 +310,9 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
 {
   NS_LOG_FUNCTION (inFace << header->GetName () << payload << origPacket);
   m_inData (header, payload, inFace);
+
+  DataMeetSet(inFace, header, payload, origPacket);
+
 
   // Lookup PIT entry
   Ptr<pit::Entry> pitEntry = m_pit->Lookup (*header);
@@ -285,6 +377,88 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
     }
 }
 
+
+//Shock, Data to meet InterestSet Records of PIT
+void
+ForwardingStrategy::DataMeetSet(Ptr<Face> inFace,
+                            Ptr<const ContentObject> header,
+                            Ptr<Packet> payload,
+                            Ptr<const Packet> origPacket)
+{
+	uint32_t seq = atoi(header->GetName().GetLastComponent().c_str());
+
+	Name prefix = header->GetName();
+	std::list<boost::reference_wrapper<const std::string> > comps =  prefix.GetSubComponents(prefix.size() - 1);
+	prefix = Name(comps);
+	prefix.Add("_set");
+	uint32_t t = seq / Interest::SET_MOD;
+	uint32_t min = t * Interest::SET_MOD;
+	uint32_t max = (t+1) * Interest::SET_MOD -1;
+	std::stringstream str;
+	str<<"_min"<<min<<"-_max"<<max;
+	prefix .Add(str.str());
+
+
+	  Ptr<pit::Entry> pitEntry = m_pit->Find (prefix); //exactly match, only one
+	  Ptr<Interest> ist = pitEntry->GetInterest();
+
+	  if (pitEntry == 0 || ist->GetSeqs().find(seq)==ist->GetSeqs().end())
+	    {
+	      bool cached = false;
+
+	      if (m_cacheUnsolicitedData)
+	        {
+	          FwHopCountTag hopCountTag;
+
+	          Ptr<Packet> payloadCopy = payload->Copy ();
+	          payloadCopy->RemovePacketTag (hopCountTag);
+
+	          // Optimistically add or update entry in the content store
+	          cached = m_contentStore->Add (header, payloadCopy);
+	        }
+	      else
+	        {
+	          // Drop data packet if PIT entry is not found
+	          // (unsolicited data packets should not "poison" content store)
+
+	          //drop dulicated or not requested data packet
+	          m_dropData (header, payload, inFace);
+	        }
+
+	      DidReceiveUnsolicitedData (inFace, header, payload, origPacket, cached);
+	      return;
+	    }
+	  else
+	    {
+	      bool cached = false;
+
+	      FwHopCountTag hopCountTag;
+	      if (payload->PeekPacketTag (hopCountTag))
+	        {
+	          Ptr<Packet> payloadCopy = payload->Copy ();
+	          payloadCopy->RemovePacketTag (hopCountTag);
+
+	          // Add or update entry in the content store
+	          cached = m_contentStore->Add (header, payloadCopy);
+	        }
+	      else
+	        {
+	          // Add or update entry in the content store
+	          cached = m_contentStore->Add (header, payload); // no need for extra copy
+	        }
+
+	      DidReceiveSolicitedData (inFace, header, payload, origPacket, cached);
+	    }
+
+	      // Do data plane performance measurements
+	      WillSatisfyPendingInterest (inFace, pitEntry);
+
+	      // Actually satisfy pending interest
+	      SatisfyPendingInterest (inFace, header, payload, origPacket, pitEntry);
+
+	      // Lookup another PIT entry
+	      pitEntry = m_pit->Find (prefix);
+}
 void
 ForwardingStrategy::DidCreatePitEntry (Ptr<Face> inFace,
                                        Ptr<const Interest> header,
@@ -399,15 +573,33 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
           NS_LOG_DEBUG ("Cannot satisfy data to " << *incoming.m_face);
         }
     }
+  Ptr<Interest> ist = pitEntry->GetInterest();
+  if (ist->IsInterestSet())
+  {
+	  uint32_t seq = atoi(header->GetName().GetLastComponent().c_str());
+	  ist->RemoveSeq(seq);
 
+	  if (ist->GetSeqs().size() == 0) {
+		  // All incoming interests are satisfied. Remove them
+		pitEntry->ClearIncoming ();
+
+		  // Remove all outgoing faces
+		pitEntry->ClearOutgoing ();
+
+		  // Set pruning timout on PIT entry (instead of deleting the record)
+		m_pit->MarkErased (pitEntry);
+	  }
+
+  } else{
   // All incoming interests are satisfied. Remove them
-  pitEntry->ClearIncoming ();
+	  pitEntry->ClearIncoming ();
 
   // Remove all outgoing faces
-  pitEntry->ClearOutgoing ();
+	  pitEntry->ClearOutgoing ();
 
   // Set pruning timout on PIT entry (instead of deleting the record)
-  m_pit->MarkErased (pitEntry);
+	 m_pit->MarkErased (pitEntry);
+  }
 }
 
 void
@@ -439,7 +631,18 @@ ForwardingStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace,
   // If we have sent interest for this data via this face, then update stats.
   if (out != pitEntry->GetOutgoing ().end ())
     {
-      pitEntry->GetFibEntry ()->UpdateFaceRtt (inFace, Simulator::Now () - out->m_sendTime);
+	  uint32_t setmod = 1;
+	  Time gap = Simulator::Now () - out->m_sendTime;
+
+
+	  Ptr<Interest> ist = pitEntry->GetInterest();
+	  if (ist->IsInterestSet())
+	  {
+		  setmod = Interest::SET_MOD - ist->GetSeqs().size();
+		  gap = Time(gap.GetDouble()/setmod);
+		  NS_LOG_FUNCTION("RTT gap="<<gap<<" Mod="<<setmod);
+	  }
+      pitEntry->GetFibEntry ()->UpdateFaceRtt (inFace, gap);
     }
 }
 
@@ -517,6 +720,8 @@ ForwardingStrategy::PropagateInterest (Ptr<Face> inFace,
       DidExhaustForwardingOptions (inFace, header, origPacket, pitEntry);
     }
 }
+
+
 
 bool
 ForwardingStrategy::CanSendOutInterest (Ptr<Face> inFace,
