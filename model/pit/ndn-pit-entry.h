@@ -291,7 +291,7 @@ public:
   /**
    * @brief Get Interest (if several interests are received, then nonce is from the first Interest)
    */
-  Ptr<const Interest>
+  Ptr<Interest>
   GetInterest ();
 
 private:

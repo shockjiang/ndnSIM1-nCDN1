@@ -259,7 +259,7 @@ Entry::GetMaxRetxCount () const
   return m_maxRetxCount;
 }
 
-Ptr<const Interest>
+Ptr<Interest>
 Entry::GetInterest ()
 {
   return m_interest;
