@@ -400,7 +400,7 @@ ForwardingStrategy::DataMeetSet(Ptr<Face> inFace,
 
 
 	  Ptr<pit::Entry> pitEntry = m_pit->Find (prefix); //exactly match, only one
-	  Ptr<Interest> ist = pitEntry->GetInterest();
+	  Ptr<const Interest> ist = pitEntry->GetInterest();
 
 	  if (pitEntry == 0 || ist->GetSeqs().find(seq)==ist->GetSeqs().end())
 	    {
@@ -573,12 +573,12 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
           NS_LOG_DEBUG ("Cannot satisfy data to " << *incoming.m_face);
         }
     }
-  Ptr<Interest> ist = pitEntry->GetInterest();
+  Ptr<const Interest> ist = pitEntry->GetInterest();
   if (ist->IsInterestSet())
   {
 	  uint32_t seq = atoi(header->GetName().GetLastComponent().c_str());
-	  ist->RemoveSeq(seq);
-
+	  //ist->RemoveSeq(seq);
+        pitEntry->RemoveSeqOfSet(seq);
 	  if (ist->GetSeqs().size() == 0) {
 		  // All incoming interests are satisfied. Remove them
 		pitEntry->ClearIncoming ();
@@ -635,7 +635,7 @@ ForwardingStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace,
 	  Time gap = Simulator::Now () - out->m_sendTime;
 
 
-	  Ptr<Interest> ist = pitEntry->GetInterest();
+	  Ptr<const Interest> ist = pitEntry->GetInterest();
 	  if (ist->IsInterestSet())
 	  {
 		  setmod = Interest::SET_MOD - ist->GetSeqs().size();

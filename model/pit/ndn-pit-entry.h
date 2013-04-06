@@ -291,8 +291,11 @@ public:
   /**
    * @brief Get Interest (if several interests are received, then nonce is from the first Interest)
    */
-  Ptr<Interest>
-  GetInterest ();
+  Ptr<const Interest>
+  GetInterest () const;
+
+  void
+  RemoveSeqOfSet(uint32_t seq);
 
 private:
   friend std::ostream& operator<< (std::ostream& os, const Entry &entry);

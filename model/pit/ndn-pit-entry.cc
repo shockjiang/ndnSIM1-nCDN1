@@ -259,12 +259,18 @@ Entry::GetMaxRetxCount () const
   return m_maxRetxCount;
 }
 
-Ptr<Interest>
-Entry::GetInterest ()
+Ptr<const Interest>
+Entry::GetInterest () const
 {
   return m_interest;
 }
 
+
+void
+Entry::RemoveSeqOfSet (uint32_t seq)
+{
+    m_interest->GetSeqs().erase(seq);
+}
 std::ostream& operator<< (std::ostream& os, const Entry &entry)
 {
   os << "Prefix: " << entry.GetPrefix () << "\n";
