@@ -262,6 +262,13 @@ Entry::GetMaxRetxCount () const
 Ptr<const Interest>
 Entry::GetInterest () const
 {
+    NS_LOG_FUNCTION("Get Interest");
+   if (m_interest == NULL)  
+   {
+       NS_LOG_DEBUG("m_interest==0");
+   } else {
+       NS_LOG_DEBUG("m_interest!=0");
+   }
   return m_interest;
 }
 

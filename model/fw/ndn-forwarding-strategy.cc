@@ -366,6 +366,7 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
 
   while (pitEntry != 0)
     {
+        NS_LOG_FUNCTION("process one");
       // Do data plane performance measurements
       WillSatisfyPendingInterest (inFace, pitEntry);
 
@@ -386,7 +387,7 @@ ForwardingStrategy::DataMeetSet(Ptr<Face> inFace,
                             Ptr<const Packet> origPacket)
 {
 	uint32_t seq = atoi(header->GetName().GetLastComponent().c_str());
-
+    NS_LOG_FUNCTION("seq="<<seq);
 	Name prefix = header->GetName();
 	std::list<boost::reference_wrapper<const std::string> > comps =  prefix.GetSubComponents(prefix.size() - 1);
 	prefix = Name(comps);
@@ -398,12 +399,15 @@ ForwardingStrategy::DataMeetSet(Ptr<Face> inFace,
 	str<<"_min"<<min<<"-_max"<<max;
 	prefix .Add(str.str());
 
+    NS_LOG_FUNCTION("prefix="<<str.str());
 
 	  Ptr<pit::Entry> pitEntry = m_pit->Find (prefix); //exactly match, only one
-	  Ptr<const Interest> ist = pitEntry->GetInterest();
-
-	  if (pitEntry == 0 || ist->GetSeqs().find(seq)==ist->GetSeqs().end())
+    //NS_LOG_FUNCTION("BEGIN TRY2"<<pitEntry->GetPrefix());
+    //  Ptr<const Interest> ist = pitEntry->GetInterest();
+    NS_LOG_FUNCTION("BEGIN TRY");
+	  if (pitEntry == 0 || pitEntry->GetInterest()->GetSeqs().find(seq)==pitEntry->GetInterest()->GetSeqs().end())
 	    {
+           NS_LOG_FUNCTION("dont meet pit"); 
 	      bool cached = false;
 
 	      if (m_cacheUnsolicitedData)
@@ -430,6 +434,7 @@ ForwardingStrategy::DataMeetSet(Ptr<Face> inFace,
 	    }
 	  else
 	    {
+        NS_LOG_FUNCTION("meet one");
 	      bool cached = false;
 
 	      FwHopCountTag hopCountTag;
@@ -458,6 +463,8 @@ ForwardingStrategy::DataMeetSet(Ptr<Face> inFace,
 
 	      // Lookup another PIT entry
 	      pitEntry = m_pit->Find (prefix);
+
+          NS_LOG_FUNCTION("PIT SET FINISHES");
 }
 void
 ForwardingStrategy::DidCreatePitEntry (Ptr<Face> inFace,
@@ -577,8 +584,9 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
   if (ist->IsInterestSet())
   {
 	  uint32_t seq = atoi(header->GetName().GetLastComponent().c_str());
-	  //ist->RemoveSeq(seq);
-        pitEntry->RemoveSeqOfSet(seq);
+	  ist->RemoveSeq(seq);
+      NS_LOG_FUNCTION("remove seq="<<seq);
+        //pitEntry->RemoveSeqOfSet(seq);
 	  if (ist->GetSeqs().size() == 0) {
 		  // All incoming interests are satisfied. Remove them
 		pitEntry->ClearIncoming ();
