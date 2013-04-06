@@ -292,7 +292,7 @@ public:
    * @brief Get Interest (if several interests are received, then nonce is from the first Interest)
    */
   Ptr<const Interest>
-  GetInterest () const;
+  GetInterest ();
 
 private:
   friend std::ostream& operator<< (std::ostream& os, const Entry &entry);
