@@ -135,12 +135,16 @@ ForwardingStrategy::OnInterest (Ptr<Face> inFace,
                                 Ptr<const Interest> header,
                                 Ptr<const Packet> origPacket)
 {
-	if (header->IsInterestSet()) {
-		ForwardingStrategy::OnInterestSet(inFace, header, origPacket);
-		return;
-	}
+
   m_inInterests (header, inFace);
 
+  if (header->IsInterestSet()) {
+	  NS_LOG_FUNCTION("interest set");
+	  ForwardingStrategy::OnInterestSet(inFace, header, origPacket);
+
+  		return;
+  	}
+  NS_LOG_FUNCTION("interest ");
   Ptr<pit::Entry> pitEntry = m_pit->Lookup (*header);
   bool similarInterest = true;
   if (pitEntry == 0)
@@ -580,22 +584,28 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
           NS_LOG_DEBUG ("Cannot satisfy data to " << *incoming.m_face);
         }
     }
-  Ptr<const Interest> ist = pitEntry->GetInterest();
-  if (ist->IsInterestSet())
+  //Ptr<const Interest> ist = pitEntry->GetInterest();
+  if (pitEntry->IsInterestSet())
   {
 	  uint32_t seq = atoi(header->GetName().GetLastComponent().c_str());
-	  ist->RemoveSeq(seq);
-      NS_LOG_FUNCTION("remove seq="<<seq);
-        //pitEntry->RemoveSeqOfSet(seq);
-	  if (ist->GetSeqs().size() == 0) {
-		  // All incoming interests are satisfied. Remove them
-		pitEntry->ClearIncoming ();
+	  if (pitEntry->IsInSet(seq))
+	  {
+		  pitEntry->RemoveSeqOfSet(seq);
+		  //ist->RemoveSeq(seq);
+		  NS_LOG_FUNCTION("remove seq="<<seq);
+			//pitEntry->RemoveSeqOfSet(seq);
+		  if (pitEntry->GetSeqs().size() == 0) {
+			  // All incoming interests are satisfied. Remove them
+			pitEntry->ClearIncoming ();
 
-		  // Remove all outgoing faces
-		pitEntry->ClearOutgoing ();
+			  // Remove all outgoing faces
+			pitEntry->ClearOutgoing ();
 
-		  // Set pruning timout on PIT entry (instead of deleting the record)
-		m_pit->MarkErased (pitEntry);
+			  // Set pruning timout on PIT entry (instead of deleting the record)
+			m_pit->MarkErased (pitEntry);
+		  }
+	  } else {
+		  NS_LOG_FUNCTION("Not in Set"<<seq);
 	  }
 
   } else{

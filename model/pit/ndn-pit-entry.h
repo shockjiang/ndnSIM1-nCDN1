@@ -24,7 +24,7 @@
 #include "ns3/ptr.h"
 #include "ns3/simple-ref-count.h"
 
-#include <vector>
+#include <set>
 
 #include "ns3/ndn-fib.h"
 
@@ -298,6 +298,15 @@ public:
 
   void
   RemoveSeqOfSet(uint32_t seq);
+
+  std::set<uint32_t>
+  GetSeqs();
+
+  bool
+  IsInterestSet() const;
+
+  bool
+  IsInSet(uint32_t seq);
 
 private:
   friend std::ostream& operator<< (std::ostream& os, const Entry &entry);

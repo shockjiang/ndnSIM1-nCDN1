@@ -50,12 +50,13 @@ Entry::Entry (Pit &container,
   , m_maxRetxCount (0)
 {
   NS_LOG_FUNCTION (GetPrefix () << m_expireTime);
-	//m_seqs = std::set<int>(header->GetSeqs());
-	std::set<int>::iterator it = header->GetSeqs().begin();
-			while (it != header->GetSeqs().end()){
-				m_seqs.insert(*it);
-				it++;
-			}
+  m_seqs.insert(m_interest->GetSeqs().begin(), m_interest->GetSeqs().end());
+  //m_seqs = std::set<int>(header->GetSeqs());
+//	std::set<int>::const_iterator it = header->GetSeqs().begin();
+//			while (it != header->GetSeqs().end()){
+//				m_seqs.insert(*it);
+//				it++;
+//			}
   // note that if interest lifetime is not set, the behavior is undefined
 }
 
@@ -276,8 +277,29 @@ Entry::GetInterest () const
 void
 Entry::RemoveSeqOfSet (uint32_t seq)
 {
-    m_interest->GetSeqs().erase(seq);
+    m_seqs.erase(seq);
 }
+
+std::set<uint32_t>
+Entry::GetSeqs()
+{
+	return m_seqs;
+}
+
+bool
+Entry::IsInterestSet() const
+{
+	return m_interest->IsInterestSet();
+}
+
+bool
+Entry::IsInSet(uint32_t seq)
+{
+	if (m_seqs.find(seq) != m_seqs.end())
+		return true;
+	return false;
+}
+
 std::ostream& operator<< (std::ostream& os, const Entry &entry)
 {
   os << "Prefix: " << entry.GetPrefix () << "\n";

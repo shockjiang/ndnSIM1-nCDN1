@@ -223,17 +223,18 @@ Consumer::SendPacket ()
   m_seqLastDelay.insert (SeqTimeout (seq, Simulator::Now ()));
 
   m_seqRetxCounts[seq] ++;
-
+  NS_LOG_FUNCTION("Send Interest "<<seq<<" finished3");
   m_transmittedInterests (&interestHeader, this, m_face);
 
   m_rtt->SentSeq (SequenceNumber32 (seq), 1);
-
+  NS_LOG_FUNCTION("Send Interest "<<seq<<" finished2");
   FwHopCountTag hopCountTag;
   packet->AddPacketTag (hopCountTag);
-
+  NS_LOG_INFO("Send Interest1 "<<seq<<" finished");
   m_protocolHandler (packet);
-
+  NS_LOG_INFO("Send Interest0 "<<seq<<" finished");
   ScheduleNextPacket ();
+  NS_LOG_INFO("Send Interest "<<seq<<" finished");
 }
 
 ///////////////////////////////////////////////////

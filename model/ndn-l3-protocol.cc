@@ -266,8 +266,9 @@ L3Protocol::Receive (const Ptr<Face> &face, const Ptr<const Packet> &p)
             // Deserialization. Exception may be thrown
             packet->RemoveHeader (*header);
             NS_ASSERT_MSG (packet->GetSize () == 0, "Payload of Interests should be zero");
-
+            NS_LOG_LOGIC ("Interest to be sent");
             m_forwardingStrategy->OnInterest (face, header, p/*original packet*/);
+            NS_LOG_LOGIC ("Interest sent ok");
             // if (header->GetNack () > 0)
             //   OnNack (face, header, p/*original packet*/);
             // else

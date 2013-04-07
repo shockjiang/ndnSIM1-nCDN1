@@ -89,7 +89,7 @@ ConsumerCbr::ScheduleNextPacket ()
 {
   // double mean = 8.0 * m_payloadSize / m_desiredRate.GetBitRate ();
   // std::cout << "next: " << Simulator::Now().ToDouble(Time::S) + mean << "s\n";
-
+	NS_LOG_INFO("SCHEDULE NEXT");
   if (m_firstTime)
     {
       m_sendEvent = Simulator::Schedule (Seconds (0.0),
