@@ -593,6 +593,7 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
 		  pitEntry->RemoveSeqOfSet(seq);
 		  //ist->RemoveSeq(seq);
 		  NS_LOG_FUNCTION("remove seq="<<seq);
+
 			//pitEntry->RemoveSeqOfSet(seq);
 		  if (pitEntry->GetSeqs().size() == 0) {
 			  // All incoming interests are satisfied. Remove them
@@ -603,6 +604,10 @@ ForwardingStrategy::SatisfyPendingInterest (Ptr<Face> inFace,
 
 			  // Set pruning timout on PIT entry (instead of deleting the record)
 			m_pit->MarkErased (pitEntry);
+		  } else {
+			  Ptr<const Interest> ist = pitEntry->GetInterest();
+			  Time offset = Time(!ist->GetInterestLifetime ().IsZero ()? ist->GetInterestLifetime ():Seconds (1.0));
+			  pitEntry->UpdateLifetime(offset);
 		  }
 	  } else {
 		  NS_LOG_FUNCTION("Not in Set"<<seq);

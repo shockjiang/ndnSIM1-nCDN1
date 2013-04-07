@@ -135,6 +135,7 @@ public:
    */
   void Print (std::ostream &os) const;
 
+
   /**
    * @brief Get serialized size for ndnSIM packet encoding
    */

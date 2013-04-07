@@ -50,7 +50,10 @@ Entry::Entry (Pit &container,
   , m_maxRetxCount (0)
 {
   NS_LOG_FUNCTION (GetPrefix () << m_expireTime);
-  m_seqs.insert(m_interest->GetSeqs().begin(), m_interest->GetSeqs().end());
+  m_seqs = std::set<uint32_t>(m_interest->GetSeqs());
+  //m_seqs.insert(1);
+  //m_seqs.insert(m_interest->GetSeqs().begin(), m_interest->GetSeqs().end());
+  NS_LOG_FUNCTION("seqs size="<<m_seqs.size());
   //m_seqs = std::set<int>(header->GetSeqs());
 //	std::set<int>::const_iterator it = header->GetSeqs().begin();
 //			while (it != header->GetSeqs().end()){

@@ -68,6 +68,7 @@ Name::Name (const char *prefix)
   is >> *this;
 }
 
+
 const std::list<std::string> &
 Name::GetComponents () const
 {
