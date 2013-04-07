@@ -24,6 +24,8 @@
 #include "ns3/ptr.h"
 #include "ns3/simple-ref-count.h"
 
+#include <vector>
+
 #include "ns3/ndn-fib.h"
 
 #include "ns3/ndn-pit-entry-incoming-face.h"
@@ -304,6 +306,8 @@ protected:
   Pit &m_container; ///< @brief Reference to the container (to rearrange indexes, if necessary)
 
   Ptr<const Interest> m_interest; ///< \brief Interest of the PIT entry (if several interests are received, then nonce is from the first Interest)
+  std::set<uint32_t> m_seqs; //seqs of the data, the seq contained in the name is minimized one.
+
   Ptr<fib::Entry> m_fibEntry;     ///< \brief FIB entry related to this prefix
 
   nonce_container m_seenNonces;  ///< \brief map of nonces that were seen for this prefix

@@ -50,6 +50,12 @@ Entry::Entry (Pit &container,
   , m_maxRetxCount (0)
 {
   NS_LOG_FUNCTION (GetPrefix () << m_expireTime);
+	//m_seqs = std::set<int>(header->GetSeqs());
+	std::set<int>::iterator it = header->GetSeqs().begin();
+			while (it != header->GetSeqs().end()){
+				m_seqs.insert(*it);
+				it++;
+			}
   // note that if interest lifetime is not set, the behavior is undefined
 }
 
