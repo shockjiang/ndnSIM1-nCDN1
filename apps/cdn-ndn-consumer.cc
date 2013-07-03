@@ -33,7 +33,8 @@ CDNConsumer::GetTypeId (void)
     .SetGroupName ("Ndn")
     .SetParent<ConsumerZipfMandelbrot> ()
     .AddConstructor<CDNConsumer> ()
-
+    .AddTraceSource ("TimeoutRequest", "Timeout request during PIT checking",
+                    MakeTraceSourceAccessor (&CDNConsumer::m_timeoutRequest))
     ;
 
   return tid;
@@ -56,9 +57,57 @@ CDNConsumer::OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> pack
 	Consumer::OnNack(interest, packet);
 }
 
+Time
+CDNConsumer::GetRetxTimer () const
+{
+  return m_retxTimer;
+}
+
+void
+CDNConsumer::SetRetxTimer (Time retxTimer)
+{
+  m_retxTimer = retxTimer;
+  if (m_retxEvent.IsRunning ())
+    {
+      // m_retxEvent.Cancel (); // cancel any scheduled cleanup events
+      Simulator::Remove (m_retxEvent); // slower, but better for memory
+    }
+
+  // schedule even with new timeout
+  m_retxEvent = Simulator::Schedule (m_retxTimer,
+                                     &CDNConsumer::CheckRetxTimeout, this);
+}
+
+void
+CDNConsumer::CheckRetxTimeout ()
+{
+  Time now = Simulator::Now ();
+
+  Time rto = m_rtt->RetransmitTimeout ();
+  // NS_LOG_DEBUG ("Current RTO: " << rto.ToDouble (Time::S) << "s");
+
+  while (!m_seqTimeouts.empty ())
+    {
+      SeqTimeoutsContainer::index<i_timestamp>::type::iterator entry =
+        m_seqTimeouts.get<i_timestamp> ().begin ();
+      if (entry->time + rto <= now) // timeout expired?
+        {
+          uint32_t seqNo = entry->seq;
+          m_seqTimeouts.get<i_timestamp> ().erase (entry);
+          CDNConsumer::OnTimeout (seqNo);
+        }
+      else
+        break; // nothing else to do. All later packets need not be retransmitted
+    }
+
+  m_retxEvent = Simulator::Schedule (m_retxTimer,
+                                     &CDNConsumer::CheckRetxTimeout, this);
+}
+
 void
 CDNConsumer::OnTimeout (uint32_t sequenceNumber) {
 	m_timeoutRequest(this, sequenceNumber);
+	NS_LOG_FUNCTION(sequenceNumber);
 	Consumer::OnTimeout(sequenceNumber);
 }
 

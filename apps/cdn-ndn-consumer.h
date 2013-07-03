@@ -64,6 +64,28 @@ public:
 
   //void   addDataSources(std::string prefix);
 
+
+  /**
+   * \brief Checks if the packet need to be retransmitted becuase of retransmission timer expiration
+   */
+  void
+  CheckRetxTimeout ();
+
+  /**
+   * \brief Modifies the frequency of checking the retransmission timeouts
+   * \param retxTimer Timeout defining how frequent retransmission timeouts should be checked
+   */
+  void
+  SetRetxTimer (Time retxTimer);
+
+
+  /**
+   * \brief Returns the frequency of checking the retransmission timeouts
+   * \return Timeout defining how frequent retransmission timeouts should be checked
+   */
+  Time
+  GetRetxTimer () const;
+
   virtual void
   ScheduleNextPacket ();
 

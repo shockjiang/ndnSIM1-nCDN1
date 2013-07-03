@@ -19,7 +19,7 @@
 #include "ndn-consumer-cbr.h"
 #include "ns3/random-variable.h"
 
-#include "ndn-consumer-zipf-mandelbrot.h"
+#include "cdn-ndn-consumer.h"
 
 #include <vector>
 using std::vector;
@@ -28,7 +28,7 @@ using std::vector;
 namespace ns3 {
 namespace ndn {
 
-class CDNIPApp: public ConsumerZipfMandelbrot
+class CDNIPConsumer: public CDNConsumer
 {
 public:
   static TypeId GetTypeId ();
@@ -38,33 +38,8 @@ public:
    * Sets up randomized Number Generator (RNG)
    * Note: m_seq of its parent class ConsumerCbr here is used to record the interest number
    */
-  CDNIPApp ();
-  virtual ~CDNIPApp ();
+  CDNIPConsumer ();
 
-
-  virtual void SendPacket();
-
-  virtual void
-  OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> packet);
-
-
-  /**
-   * @brief Timeout event
-   * @param sequenceNumber time outed sequence number
-   */
-  virtual void
-  OnTimeout (uint32_t sequenceNumber);
-
-
-
-  virtual void
-  OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
-                   Ptr<Packet> payload);
-
-  //void   addDataSources(std::string prefix);
-
-  virtual void
-  ScheduleNextPacket ();
 
   void
   AddProducers(NameComponents source);
@@ -82,20 +57,12 @@ public:
 
   vector<NameComponents>::size_type pickIndex(NameComponents name);
 
-protected:
 
-private:
-  uint32_t m_N;  //number of the contents
-  double m_q;  //q in (k+q)^s
-  double m_s;  //s in (k+q)^s
-  std::vector<double> m_Pcum;  //cumulative probability
+public:
+  vector<NameComponents>     m_producers;        ///< \brief NDN Name of the Interest (use NameComponents)
+  vector<uint32_t>     m_costs;        ///< \brief NDN Name of the Interest (use NameComponents)
+  //Ptr<NameComponents> m_curProducer; m_interestName from Consumer
 
-  vector<int> sent;
-  vector<int> received;
-
-  vector<NameComponents>     m_Producers;        ///< \brief NDN Name of the Interest (use NameComponents)
-  uint32_t m_SeqType; // 0 means Cbr, 1 means ZipfMandelbrot
-  UniformVariable m_SeqRng; //RNG
 };
 
 } /* namespace ndn */

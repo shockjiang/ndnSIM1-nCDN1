@@ -69,15 +69,19 @@ main (int argc, char *argv[])
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
+  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
+  ndnHelper.SetContentStore("ns3::ndn::cs::CDNContentStore::Lru");
   ndnHelper.InstallAll ();
 
   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
 
+  NodeContainer producerNodes;
   // Getting containers for the consumer/producer
   Ptr<Node> producer = grid.GetNode (2, 2);
+  producerNodes.Add(producer);
+  producerNodes.Add(grid.GetNode(2, 0));
   NodeContainer consumerNodes;
   consumerNodes.Add (grid.GetNode (0,0));
 
@@ -92,10 +96,12 @@ main (int argc, char *argv[])
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix (prefix);
   producerHelper.SetAttribute ("PayloadSize", StringValue("1024"));
-  producerHelper.Install (producer);
+  producerHelper.Install (producerNodes);
+
+
 
   // Add /prefix origins to ndn::GlobalRouter
-  ndnGlobalRoutingHelper.AddOrigins (prefix, producer);
+  ndnGlobalRoutingHelper.AddOrigins (prefix, producerNodes);
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateRoutes ();
