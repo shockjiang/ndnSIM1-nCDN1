@@ -150,7 +150,7 @@ CDNIPConsumer::ChangeProducer(){
 
 	  NS_LOG_INFO("change interest prefix to "<<tn<< " from " <<this->m_interestName);
 	  this->m_interestName = tn;
-	  Time now = Simulator::Now ();
+	  this->m_lastChangeT = Simulator::Now ();
 }
 
 
