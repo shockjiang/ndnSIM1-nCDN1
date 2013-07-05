@@ -18,11 +18,16 @@
 #include "ns3/double.h"
 #include "ndn-consumer-cbr.h"
 #include "ns3/random-variable.h"
-
+#include "ns3/ndn-fib.h"
+//#include "ns3/ndn-fib-impl.h"
 #include "cdn-ndn-consumer.h"
+#include <boost/lexical_cast.hpp>
+
 
 #include <vector>
 using std::vector;
+
+//using ndn::fib
 
 
 namespace ns3 {
@@ -40,28 +45,29 @@ public:
    */
   CDNIPConsumer ();
 
-
   void
-  AddProducers(NameComponents source);
-
-  void
-  SetProducers(std::string prefixes);
-
-
-  vector<NameComponents>::size_type
   ChangeProducer();
 
-  std::string
-  GetProducers() const;
+  virtual void
+  ScheduleNextPacket ();
 
 
-  vector<NameComponents>::size_type pickIndex(NameComponents name);
+  virtual void
+  OnNack (const Ptr<const InterestHeader> &interest, Ptr<Packet> packet);
 
+
+  /**
+   * @brief Timeout event
+   * @param sequenceNumber time outed sequence number
+   */
+  virtual void
+  OnTimeout (uint32_t sequenceNumber);
 
 public:
-  vector<NameComponents>     m_producers;        ///< \brief NDN Name of the Interest (use NameComponents)
-  vector<uint32_t>     m_costs;        ///< \brief NDN Name of the Interest (use NameComponents)
-  //Ptr<NameComponents> m_curProducer; m_interestName from Consumer
+  bool m_enableMulticast;
+ Ptr<ndn::fib::Entry> cur;
+ Time m_lastChangeT;
+  TracedCallback<Ptr<App> /*app */, Ptr<ndn::fib::Entry> /*entryold*/, Ptr<ndn::fib::Entry> /*entrynew */> m_changeProducer;
 
 };
 
