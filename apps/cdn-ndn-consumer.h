@@ -105,7 +105,8 @@ public:
 //  vector<NameComponents>     m_producers;
 //  NameComponents m_currentProducer;
 //  uint32_t m_sentN;
-
+  uint32_t m_reTxMax;
+  TracedCallback<Ptr<App> /*app */, uint32_t /* seq */> m_newRequest;
   TracedCallback<Ptr<App> /*app */, uint32_t /* seq */> m_timeoutRequest;
 };
 

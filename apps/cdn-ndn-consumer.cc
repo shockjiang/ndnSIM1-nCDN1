@@ -33,8 +33,16 @@ CDNConsumer::GetTypeId (void)
     .SetGroupName ("Ndn")
     .SetParent<ConsumerZipfMandelbrot> ()
     .AddConstructor<CDNConsumer> ()
+    .AddAttribute ("ReTxMax","Max trial time of requesting",
+    				IntegerValue (0),
+    				MakeIntegerAccessor (&CDNConsumer::m_reTxMax),
+    				MakeIntegerChecker<int32_t> ())
+
     .AddTraceSource ("TimeoutRequest", "Timeout request during PIT checking",
                     MakeTraceSourceAccessor (&CDNConsumer::m_timeoutRequest))
+
+	.AddTraceSource ("NewRequest", "New Request, no retransmission or on transmission",
+					MakeTraceSourceAccessor (&CDNConsumer::m_newRequest))
     ;
 
   return tid;
@@ -115,18 +123,18 @@ CDNConsumer::OnTimeout (uint32_t sequenceNumber) {
 void
 CDNConsumer::OnContentObject (const Ptr<const ContentObjectHeader> &contentObject,
                    Ptr<Packet> payload) {
-	NameComponents name = contentObject->GetName();
-	Name::const_iterator iter = name.begin();
-	Name::const_iterator next = iter;
-	next ++;
-	NameComponents source;
-	while (next != name.end()) {
-		source.Add(*iter);
-
-		iter ++;
-		next ++;
-	}
-	NS_LOG_LOGIC("ContentName="<<contentObject->GetName()<<". source="<<source);
+//	NameComponents name = contentObject->GetName();
+//	Name::const_iterator iter = name.begin();
+//	Name::const_iterator next = iter;
+//	next ++;
+//	NameComponents source;
+//	while (next != name.end()) {
+//		source.Add(*iter);
+//
+//		iter ++;
+//		next ++;
+//	}
+//	NS_LOG_LOGIC("ContentName="<<contentObject->GetName()<<". source="<<source);
 	Consumer::OnContentObject (contentObject, payload);
 }
 
@@ -138,7 +146,39 @@ CDNConsumer::SendPacket() {
 
 	  NS_LOG_FUNCTION_NOARGS ();
 
-	  uint32_t seq = ConsumerZipfMandelbrot::GetNextSeq();
+	  uint32_t seq=std::numeric_limits<uint32_t>::max (); //invalid
+	  if (CDNConsumer::m_reTxMax == 0)
+	  {
+		  seq = ConsumerZipfMandelbrot::GetNextSeq();
+	  } else
+	  {
+
+		  std::set<uint32_t>::iterator it = m_retxSeqs.begin();
+		  while (it != m_retxSeqs.end())
+		  {
+			  uint32_t tt = *it;
+			  if (m_seqRetxCounts[tt] >= m_reTxMax)
+			  {
+				  it ++;
+			  } else
+			  {
+				  seq = tt;
+				  break;
+			  }
+		  }
+		  m_retxSeqs.erase(m_retxSeqs.begin(), it);
+
+		  if (seq == std::numeric_limits<uint32_t>::max ())
+		    {
+			  seq = ConsumerZipfMandelbrot::GetNextSeq();
+			  while (m_seqTimeouts.find(seq) != m_seqTimeouts.end())
+			  {
+				  seq = ConsumerZipfMandelbrot::GetNextSeq();
+				  m_newRequest(this, seq);
+			  }
+		    }
+
+	  }
 
 
 	  Ptr<NameComponents> nameWithSequence = Create<NameComponents> (m_interestName);
